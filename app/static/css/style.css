@@ -260,6 +260,12 @@ ul {
     color: var(--color-text-muted);
 }
 
+.loans-table__empty {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 1.5rem 0.75rem;
+}
+
 /* Badges de status */
 .badge {
     display: inline-block;

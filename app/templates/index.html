@@ -35,25 +35,27 @@
                     <h1 class="topbar__title">Painel</h1>
                     <p class="topbar__subtitle">Prefeitura Municipal de Cristópolis</p>
                 </div>
+                {% if atrasados > 0 %}
                 <div class="topbar__alert" title="Empréstimos em atraso">
                     <span aria-hidden="true">⚠️</span>
-                    <span>1 em atraso</span>
+                    <span>{{ atrasados }} em atraso</span>
                 </div>
+                {% endif %}
             </header>
 
             <main class="content">
                 <section class="stats" aria-label="Resumo do acervo">
                     <article class="stat-card">
                         <span class="stat-card__label">Livros no acervo</span>
-                        <span class="stat-card__value">8.000</span>
+                        <span class="stat-card__value">{{ total_livros }}</span>
                     </article>
                     <article class="stat-card">
                         <span class="stat-card__label">Empréstimos ativos</span>
-                        <span class="stat-card__value">12</span>
+                        <span class="stat-card__value">{{ emprestimos_ativos|length }}</span>
                     </article>
                     <article class="stat-card">
                         <span class="stat-card__label">Usuários cadastrados</span>
-                        <span class="stat-card__value">300</span>
+                        <span class="stat-card__value">{{ total_usuarios }}</span>
                     </article>
                 </section>
 
@@ -74,42 +76,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-due-date="2026-09-25">
+                                {% for emprestimo in emprestimos_ativos %}
+                                <tr data-due-date="{{ emprestimo.data_prevista_iso }}">
                                     <td>
-                                        <span class="loans-table__title">Dom Casmurro</span>
-                                        <span class="loans-table__author">Machado de Assis</span>
+                                        <span class="loans-table__title">{{ emprestimo.livro_titulo }}</span>
+                                        <span class="loans-table__author">{{ emprestimo.livro_autor }}</span>
                                     </td>
-                                    <td>João Silva</td>
-                                    <td>25/09/2026</td>
+                                    <td>{{ emprestimo.usuario_nome }}</td>
+                                    <td>{{ emprestimo.data_prevista }}</td>
                                     <td><span class="badge">Ativo</span></td>
                                 </tr>
-                                <tr data-due-date="2026-09-30">
-                                    <td>
-                                        <span class="loans-table__title">O Pequeno Príncipe</span>
-                                        <span class="loans-table__author">Antoine de Saint-Exupéry</span>
-                                    </td>
-                                    <td>Maria Oliveira</td>
-                                    <td>30/09/2026</td>
-                                    <td><span class="badge">Ativo</span></td>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="loans-table__empty">Nenhum empréstimo registrado ainda.</td>
                                 </tr>
-                                <tr data-due-date="2026-06-01">
-                                    <td>
-                                        <span class="loans-table__title">1984</span>
-                                        <span class="loans-table__author">George Orwell</span>
-                                    </td>
-                                    <td>Carlos Souza</td>
-                                    <td>01/06/2026</td>
-                                    <td><span class="badge">Ativo</span></td>
-                                </tr>
-                                <tr data-due-date="2026-10-05">
-                                    <td>
-                                        <span class="loans-table__title">O Hobbit</span>
-                                        <span class="loans-table__author">J.R.R. Tolkien</span>
-                                    </td>
-                                    <td>Juliana Lima</td>
-                                    <td>05/10/2026</td>
-                                    <td><span class="badge">Ativo</span></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </section>
