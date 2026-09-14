@@ -2,18 +2,131 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca Municipal de Cristópolis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Biblioteca Municipal de Cristópolis</h1>
-        <p>Sistema de Gestão de Acervo e Empréstimos</p>
-    </header>
+    <div class="app">
+        <nav class="sidebar" aria-label="Navegação principal">
+            <div class="sidebar__brand">
+                <span class="sidebar__brand-icon" aria-hidden="true">📚</span>
+                <span class="sidebar__brand-text">Biblioteca Cristópolis</span>
+            </div>
 
-    <main>
-        <p>Em desenvolvimento.</p>
-    </main>
+            <ul class="sidebar__nav">
+                <li><a href="#" class="sidebar__link is-active" aria-current="page">Início</a></li>
+                <li><a href="#" class="sidebar__link">Livros</a></li>
+                <li><a href="#" class="sidebar__link">Usuários</a></li>
+                <li><a href="#" class="sidebar__link">Empréstimos</a></li>
+                <li><a href="#" class="sidebar__link">Devoluções</a></li>
+                <li><a href="#" class="sidebar__link">Relatórios</a></li>
+            </ul>
+
+            <div class="sidebar__footer">
+                <span class="status-dot" aria-hidden="true"></span>
+                Backup em dia
+            </div>
+        </nav>
+
+        <div class="main">
+            <header class="topbar">
+                <div>
+                    <h1 class="topbar__title">Painel</h1>
+                    <p class="topbar__subtitle">Prefeitura Municipal de Cristópolis</p>
+                </div>
+                <div class="topbar__alert" title="Empréstimos em atraso">
+                    <span aria-hidden="true">⚠️</span>
+                    <span>1 em atraso</span>
+                </div>
+            </header>
+
+            <main class="content">
+                <section class="stats" aria-label="Resumo do acervo">
+                    <article class="stat-card">
+                        <span class="stat-card__label">Livros no acervo</span>
+                        <span class="stat-card__value">8.000</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-card__label">Empréstimos ativos</span>
+                        <span class="stat-card__value">12</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-card__label">Usuários cadastrados</span>
+                        <span class="stat-card__value">300</span>
+                    </article>
+                </section>
+
+                <section class="panels">
+                    <section class="panel panel--loans" aria-labelledby="loans-heading">
+                        <div class="panel__header">
+                            <h2 id="loans-heading">Empréstimos recentes</h2>
+                            <a href="#" class="panel__link">Ver todos</a>
+                        </div>
+
+                        <table class="loans-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Livro</th>
+                                    <th scope="col">Usuário</th>
+                                    <th scope="col">Previsão de devolução</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-due-date="2026-09-25">
+                                    <td>
+                                        <span class="loans-table__title">Dom Casmurro</span>
+                                        <span class="loans-table__author">Machado de Assis</span>
+                                    </td>
+                                    <td>João Silva</td>
+                                    <td>25/09/2026</td>
+                                    <td><span class="badge">Ativo</span></td>
+                                </tr>
+                                <tr data-due-date="2026-09-30">
+                                    <td>
+                                        <span class="loans-table__title">O Pequeno Príncipe</span>
+                                        <span class="loans-table__author">Antoine de Saint-Exupéry</span>
+                                    </td>
+                                    <td>Maria Oliveira</td>
+                                    <td>30/09/2026</td>
+                                    <td><span class="badge">Ativo</span></td>
+                                </tr>
+                                <tr data-due-date="2026-06-01">
+                                    <td>
+                                        <span class="loans-table__title">1984</span>
+                                        <span class="loans-table__author">George Orwell</span>
+                                    </td>
+                                    <td>Carlos Souza</td>
+                                    <td>01/06/2026</td>
+                                    <td><span class="badge">Ativo</span></td>
+                                </tr>
+                                <tr data-due-date="2026-10-05">
+                                    <td>
+                                        <span class="loans-table__title">O Hobbit</span>
+                                        <span class="loans-table__author">J.R.R. Tolkien</span>
+                                    </td>
+                                    <td>Juliana Lima</td>
+                                    <td>05/10/2026</td>
+                                    <td><span class="badge">Ativo</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="panel panel--actions" aria-labelledby="actions-heading">
+                        <div class="panel__header">
+                            <h2 id="actions-heading">Ações rápidas</h2>
+                        </div>
+                        <div class="quick-actions">
+                            <a href="#" class="button button--primary">Novo empréstimo</a>
+                            <a href="#" class="button button--secondary">Registrar devolução</a>
+                        </div>
+                    </section>
+                </section>
+            </main>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
