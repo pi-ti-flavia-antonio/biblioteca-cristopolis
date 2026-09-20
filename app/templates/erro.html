@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block titulo %}Erro {{ codigo }} | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Ops{% endblock %}
+
+{% block conteudo %}
+<section class="panel panel--narrow">
+    <h2>{{ mensagem }}</h2>
+    <div class="form__actions">
+        <a href="{{ url_for('main.index') }}" class="button button--primary">Voltar ao início</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consultar acervo | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Livros{% endblock %}
+{% block pagina_subtitulo %}Cadastro e consulta do acervo{% endblock %}
+
+{% block conteudo %}
+{% include "livros/_abas.html" %}
+
+<section class="panel" aria-labelledby="acervo-heading">
+    <h2 id="acervo-heading" class="visually-hidden">Acervo</h2>
+
+    <form class="search" method="get" action="{{ url_for('livros.consultar') }}" role="search">
+        <label class="visually-hidden" for="busca">Buscar livro</label>
+        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por título, autor ou ISBN" autofocus>
+        <button class="button button--primary" type="submit">Buscar</button>
+        {% if termo %}
+        <a class="button button--secondary" href="{{ url_for('livros.consultar') }}">Limpar</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Livro</th>
+                    <th scope="col">Categoria</th>
+                    <th scope="col">ISBN</th>
+                    <th scope="col">Ano</th>
+                    <th scope="col">Disponíveis</th>
+                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for livro in livros %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ livro.titulo }}</span>
+                        <span class="table__subtitle">{{ livro.autor }}</span>
+                    </td>
+                    <td>{{ livro.categoria or "-" }}</td>
+                    <td class="table__nowrap">{{ livro.isbn or "-" }}</td>
+                    <td>{{ livro.ano_publicacao or "-" }}</td>
+                    <td>
+                        <span class="badge{% if livro.quantidade_disponivel == 0 %} badge--overdue{% endif %}">{{ livro.quantidade_disponivel }} de {{ livro.quantidade_total }}</span>
+                    </td>
+                    <td class="table__actions">
+                        <a class="link-action" href="{{ url_for('livros.editar', id_livro=livro.id_livro) }}">Editar</a>
+                        <a class="link-action link-action--danger" href="{{ url_for('livros.excluir', id_livro=livro.id_livro) }}">Excluir</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="table__empty">
+                        {% if termo %}
+                        Nenhum livro encontrado para "{{ termo }}".
+                        {% else %}
+                        Nenhum livro cadastrado ainda.
+                        <a class="link-action" href="{{ url_for('livros.cadastrar') }}">Cadastrar o primeiro livro</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total > 0 %}
+    <div class="pagination">
+        <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
+        {% if total_paginas > 1 %}
+        <div class="pagination__links">
+            {% if pagina > 1 %}
+            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, pagina=pagina - 1) }}">Anterior</a>
+            {% endif %}
+            {% if pagina < total_paginas %}
+            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, pagina=pagina + 1) }}">Próxima</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

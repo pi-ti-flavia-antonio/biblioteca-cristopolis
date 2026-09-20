@@ -1,0 +1,52 @@
+{% macro nav_link(secao, url, rotulo) -%}
+    {% set ativo = request.blueprint == secao %}
+    <li><a href="{{ url }}" class="sidebar__link{% if ativo %} is-active{% endif %}"{% if ativo %} aria-current="page"{% endif %}>{{ rotulo }}</a></li>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Biblioteca Municipal de Cristópolis{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app">
+        <nav class="sidebar" aria-label="Navegação principal">
+            <div class="sidebar__brand">
+                <span class="sidebar__brand-icon" aria-hidden="true">📚</span>
+                <span class="sidebar__brand-text">Biblioteca Cristópolis</span>
+            </div>
+
+            <ul class="sidebar__nav">
+                {{ nav_link('main', url_for('main.index'), 'Início') }}
+                {{ nav_link('livros', url_for('livros.consultar'), 'Livros') }}
+                {{ nav_link('usuarios', '#', 'Usuários') }}
+                {{ nav_link('emprestimos', '#', 'Empréstimos') }}
+                {{ nav_link('devolucoes', '#', 'Devoluções') }}
+                {{ nav_link('relatorios', '#', 'Relatórios') }}
+            </ul>
+        </nav>
+
+        <div class="main">
+            <header class="topbar">
+                <div>
+                    <h1 class="topbar__title">{% block pagina_titulo %}{% endblock %}</h1>
+                    <p class="topbar__subtitle">{% block pagina_subtitulo %}Prefeitura Municipal de Cristópolis{% endblock %}</p>
+                </div>
+                {% block topbar_extra %}{% endblock %}
+            </header>
+
+            <main class="content">
+                {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+                <div class="alert alert--{{ categoria }}" role="{{ 'alert' if categoria == 'error' else 'status' }}">{{ mensagem }}</div>
+                {% endfor %}
+
+                {% block conteudo %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
