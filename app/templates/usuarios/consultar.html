@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block titulo %}Ver usuários | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Usuários{% endblock %}
+{% block pagina_subtitulo %}Cadastro e consulta de leitores{% endblock %}
+
+{% block conteudo %}
+{% include "usuarios/_abas.html" %}
+
+<section class="panel" aria-labelledby="usuarios-heading">
+    <h2 id="usuarios-heading" class="visually-hidden">Usuários</h2>
+
+    <form class="search" method="get" action="{{ url_for('usuarios.consultar') }}" role="search">
+        <label class="visually-hidden" for="busca">Buscar usuário</label>
+        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por nome ou CPF" autofocus>
+        <button class="button button--primary" type="submit">Buscar</button>
+        {% if termo %}
+        <a class="button button--secondary" href="{{ url_for('usuarios.consultar') }}">Limpar</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">CPF</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ usuario.nome }}</span>
+                        {% if usuario.email %}<span class="table__subtitle">{{ usuario.email }}</span>{% endif %}
+                    </td>
+                    <td class="table__nowrap">{{ usuario.cpf | cpf }}</td>
+                    <td class="table__nowrap">{{ usuario.telefone | telefone }}</td>
+                    <td>{{ usuario.tipo_usuario or "-" }}</td>
+                    <td class="table__actions">
+                        <a class="link-action" href="{{ url_for('usuarios.editar', usuario_id=usuario.id_usuario) }}">Editar</a>
+                        <a class="link-action link-action--danger" href="{{ url_for('usuarios.excluir', usuario_id=usuario.id_usuario) }}">Excluir</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="table__empty">
+                        {% if termo %}
+                        Nenhum usuário encontrado para "{{ termo }}".
+                        {% else %}
+                        Nenhum usuário cadastrado ainda.
+                        <a class="link-action" href="{{ url_for('usuarios.cadastrar') }}">Cadastrar o primeiro usuário</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total > 0 %}
+    <div class="pagination">
+        <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
+        {% if total_paginas > 1 %}
+        <div class="pagination__links">
+            {% if pagina > 1 %}
+            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, pagina=pagina - 1) }}">Anterior</a>
+            {% endif %}
+            {% if pagina < total_paginas %}
+            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, pagina=pagina + 1) }}">Próxima</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

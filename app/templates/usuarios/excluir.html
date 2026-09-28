@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block titulo %}Excluir usuário | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Usuários{% endblock %}
+{% block pagina_subtitulo %}Cadastro e consulta de leitores{% endblock %}
+
+{% block conteudo %}
+<section class="panel panel--narrow" aria-labelledby="excluir-heading">
+    <h2 id="excluir-heading">Excluir usuário</h2>
+
+    <p class="panel__text">
+        <strong>{{ usuario.nome }}</strong>, CPF {{ usuario.cpf | cpf }}.
+    </p>
+
+    {% if total_emprestimos > 0 %}
+    <div class="alert alert--error" role="alert">
+        Este usuário tem {{ total_emprestimos }} {{ "empréstimo registrado" if total_emprestimos == 1 else "empréstimos registrados" }}
+        e não pode ser excluído.
+    </div>
+    <div class="form__actions">
+        <a href="{{ url_for('usuarios.consultar') }}" class="button button--primary">Voltar aos usuários</a>
+    </div>
+    {% else %}
+    <p class="panel__text">Depois de excluído, o usuário não pode ser recuperado. Deseja continuar?</p>
+    <form method="post" class="form__actions">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button--danger">Sim, excluir</button>
+        <a href="{{ url_for('usuarios.consultar') }}" class="button button--secondary">Cancelar</a>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

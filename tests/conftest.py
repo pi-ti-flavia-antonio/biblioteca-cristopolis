@@ -3,6 +3,7 @@ import pytest
 from app import create_app
 from app.database import get_db
 from app.livros import repository
+from app.usuarios import repository as usuarios_repository
 
 TOKEN = "token-de-teste"
 
@@ -50,11 +51,12 @@ def criar_livro(app):
 
 @pytest.fixture
 def registrar_emprestimo(app):
-    def _registrar(id_livro, status="ativo"):
+    def _registrar(id_livro, status="ativo", id_usuario=None):
         with app.app_context():
             db = get_db()
             with db:
-                id_usuario = db.execute("INSERT INTO usuario (nome) VALUES ('Leitor')").lastrowid
+                if id_usuario is None:
+                    id_usuario = db.execute("INSERT INTO usuario (nome) VALUES ('Leitor')").lastrowid
                 db.execute(
                     """
                     INSERT INTO emprestimo (data_emprestimo, data_devolucao_prevista, status, id_usuario, id_livro)
@@ -62,8 +64,27 @@ def registrar_emprestimo(app):
                     """,
                     (status, id_usuario, id_livro),
                 )
+            return id_usuario
 
     return _registrar
+
+
+@pytest.fixture
+def criar_usuario(app):
+    def _criar(nome="Maria Oliveira", cpf="12345678909", telefone="67999990000", **extra):
+        dados = {
+            "nome": nome,
+            "cpf": cpf,
+            "telefone": telefone,
+            "tipo_usuario": None,
+            "email": None,
+            "endereco": None,
+            **extra,
+        }
+        with app.app_context():
+            return usuarios_repository.criar(dados)
+
+    return _criar
 
 
 @pytest.fixture

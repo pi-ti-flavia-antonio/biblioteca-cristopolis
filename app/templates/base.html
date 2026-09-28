@@ -21,7 +21,7 @@
             <ul class="sidebar__nav">
                 {{ nav_link('main', url_for('main.index'), 'Início') }}
                 {{ nav_link('livros', url_for('livros.consultar'), 'Livros') }}
-                {{ nav_link('usuarios', '#', 'Usuários') }}
+                {{ nav_link('usuarios', url_for('usuarios.consultar'), 'Usuários') }}
                 {{ nav_link('emprestimos', '#', 'Empréstimos') }}
                 {{ nav_link('devolucoes', '#', 'Devoluções') }}
                 {{ nav_link('relatorios', '#', 'Relatórios') }}
