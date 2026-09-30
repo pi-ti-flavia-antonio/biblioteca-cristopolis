@@ -2,7 +2,8 @@ import math
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from . import repository, validacao
+from . import isbn_lookup, repository, validacao
+from ..texto import limpar_isbn
 
 livros_bp = Blueprint("livros", __name__, url_prefix="/livros")
 
@@ -44,6 +45,32 @@ def _formulario(valores, erros, aba=None, livro_id=None, voltar=""):
     return resposta, (400 if erros else 200)
 
 
+def _buscar_dados_do_isbn(valores):
+    """Tenta preencher título/autor/ano a partir do ISBN digitado.
+
+    Retorna os valores (atualizados ou não) e uma mensagem para o usuário.
+    """
+    isbn = limpar_isbn(valores["isbn"])
+    if not isbn:
+        return valores, "Informe um ISBN para buscar.", "error"
+
+    encontrado = isbn_lookup.buscar_por_isbn(isbn)
+    if encontrado is None:
+        return valores, (
+            "Não foi possível encontrar dados para esse ISBN agora (sem internet ou livro não "
+            "encontrado na base consultada). Preencha os campos manualmente."
+        ), "error"
+
+    novos_valores = {**valores, "isbn": isbn}
+    if encontrado["titulo"]:
+        novos_valores["titulo"] = encontrado["titulo"]
+    if encontrado["autor"]:
+        novos_valores["autor"] = encontrado["autor"]
+    if encontrado["ano_publicacao"]:
+        novos_valores["ano_publicacao"] = str(encontrado["ano_publicacao"])
+    return novos_valores, "Dados encontrados. Confira as informações e clique em Salvar.", "success"
+
+
 def _obter_ou_404(id_livro):
     livro = repository.obter(id_livro)
     if livro is None:
@@ -79,6 +106,12 @@ def cadastrar():
 
     voltar = request.form.get("voltar", "")
     valores = validacao.valores_do_formulario(request.form)
+
+    if request.form.get("acao") == "buscar_isbn":
+        valores, mensagem, categoria = _buscar_dados_do_isbn(valores)
+        flash(mensagem, categoria)
+        return _formulario(valores, {}, aba="cadastrar", voltar=voltar)
+
     dados, erros = validacao.validar_livro(valores)
     _checar_regras_do_banco(dados, erros)
     if erros:
@@ -99,6 +132,12 @@ def editar(id_livro):
         return _formulario(validacao.valores_do_livro(livro), {}, livro_id=id_livro)
 
     valores = validacao.valores_do_formulario(request.form)
+
+    if request.form.get("acao") == "buscar_isbn":
+        valores, mensagem, categoria = _buscar_dados_do_isbn(valores)
+        flash(mensagem, categoria)
+        return _formulario(valores, {}, livro_id=id_livro)
+
     dados, erros = validacao.validar_livro(valores)
     _checar_regras_do_banco(dados, erros, livro_atual=livro)
     if erros:

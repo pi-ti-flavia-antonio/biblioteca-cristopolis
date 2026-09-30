@@ -51,7 +51,26 @@
             {{ campo("autor", "Autor", obrigatorio=True, tamanho_max=150) }}
             {{ campo("quantidade", "Quantidade de exemplares", tipo="number", obrigatorio=True, minimo=1, maximo=9999) }}
             {{ campo("categoria", "Categoria", lista="categorias", tamanho_max=60, ajuda="Se a categoria ainda não existir, ela é criada ao salvar.") }}
-            {{ campo("isbn", "ISBN", tamanho_max=17, ajuda="Opcional. Pode digitar com ou sem hífen.") }}
+
+            <div class="field">
+                <label for="isbn">ISBN</label>
+                <div class="field__isbn-row">
+                    <input id="isbn" name="isbn" type="text" value="{{ valores.isbn }}" maxlength="17"
+                           class="input{% if erros.isbn %} input--error{% endif %}">
+                    <button type="submit" name="acao" value="buscar_isbn" class="button button--secondary" formnovalidate>
+                        Buscar dados
+                    </button>
+                </div>
+                {% if erros.isbn %}
+                <p class="field__error">{{ erros.isbn }}</p>
+                {% else %}
+                <p class="field__hint">
+                    Opcional. Pode digitar com ou sem hífen. Informe o ISBN e clique em "Buscar dados" para
+                    preencher título, autor e ano automaticamente (é preciso ter internet).
+                </p>
+                {% endif %}
+            </div>
+
             {{ campo("ano_publicacao", "Ano de publicação", tipo="number", minimo=1000) }}
         </div>
 

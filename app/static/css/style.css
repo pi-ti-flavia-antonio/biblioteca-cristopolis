@@ -460,6 +460,15 @@ button:focus-visible,
     color: var(--color-text-muted);
 }
 
+.field__isbn-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.field__isbn-row .input {
+    flex: 1;
+}
+
 .field__error {
     font-size: 0.78rem;
     color: var(--color-danger-dark);

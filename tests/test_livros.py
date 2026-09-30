@@ -1,3 +1,5 @@
+from app.livros import isbn_lookup
+
 LIVRO_VALIDO = {
     "titulo": "Dom Casmurro",
     "autor": "Machado de Assis",
@@ -241,6 +243,66 @@ def test_nao_exclui_livro_com_historico_de_emprestimos(client, post, criar_livro
     pagina = html(client.get("/livros"))
     assert "não pode ser excluído" in pagina
     assert "Dom Casmurro" in pagina
+
+
+def test_buscar_isbn_preenche_titulo_autor_e_ano(client, post, monkeypatch):
+    monkeypatch.setattr(
+        isbn_lookup,
+        "buscar_por_isbn",
+        lambda isbn: {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899},
+    )
+
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "titulo": "", "autor": "", "isbn": "9788535902775", "acao": "buscar_isbn"})
+    pagina = html(resposta)
+
+    assert resposta.status_code == 200
+    assert "Dados encontrados" in pagina
+    assert 'value="Dom Casmurro"' in pagina
+    assert 'value="Machado de Assis"' in pagina
+    assert 'value="1899"' in pagina
+
+
+def test_buscar_isbn_nao_grava_nada_no_banco(client, post, consulta, monkeypatch):
+    monkeypatch.setattr(
+        isbn_lookup,
+        "buscar_por_isbn",
+        lambda isbn: {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899},
+    )
+
+    post("/livros/novo", {**LIVRO_VALIDO, "isbn": "9788535902775", "acao": "buscar_isbn"})
+
+    assert consulta("SELECT id_livro FROM livro") == []
+
+
+def test_buscar_isbn_sem_isbn_digitado_mostra_aviso(post):
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "isbn": "", "acao": "buscar_isbn"})
+
+    assert "Informe um ISBN para buscar." in html(resposta)
+
+
+def test_buscar_isbn_nao_encontrado_mostra_aviso_e_mantem_valores(post, monkeypatch):
+    monkeypatch.setattr(isbn_lookup, "buscar_por_isbn", lambda isbn: None)
+
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "titulo": "Meu título digitado", "isbn": "9788535902775", "acao": "buscar_isbn"})
+    pagina = html(resposta)
+
+    assert "Não foi possível encontrar dados para esse ISBN" in pagina
+    assert 'value="Meu título digitado"' in pagina
+
+
+def test_buscar_isbn_tambem_funciona_ao_editar(post, criar_livro, monkeypatch):
+    id_livro = criar_livro("Título provisório", "Autor provisório")
+    monkeypatch.setattr(
+        isbn_lookup,
+        "buscar_por_isbn",
+        lambda isbn: {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899},
+    )
+
+    resposta = post(f"/livros/{id_livro}/editar", {**LIVRO_VALIDO, "isbn": "9788535902775", "acao": "buscar_isbn"})
+    pagina = html(resposta)
+
+    assert resposta.status_code == 200
+    assert 'value="Dom Casmurro"' in pagina
 
 
 def test_post_sem_token_csrf_e_recusado(post, consulta):
