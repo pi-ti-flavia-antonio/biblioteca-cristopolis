@@ -46,3 +46,13 @@ CREATE TABLE IF NOT EXISTS emprestimo (
 );
 
 CREATE INDEX IF NOT EXISTS ix_emprestimo_livro_status ON emprestimo (id_livro, status);
+
+CREATE TABLE IF NOT EXISTS reserva (
+    id_reserva   INTEGER PRIMARY KEY AUTOINCREMENT,
+    data_reserva TEXT    NOT NULL,
+    status       TEXT    NOT NULL DEFAULT 'ativa' CHECK (status IN ('ativa', 'cancelada', 'concluida')),
+    id_usuario   INTEGER NOT NULL REFERENCES usuario (id_usuario),
+    id_livro     INTEGER NOT NULL REFERENCES livro (id_livro) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS ix_reserva_livro_status ON reserva (id_livro, status);

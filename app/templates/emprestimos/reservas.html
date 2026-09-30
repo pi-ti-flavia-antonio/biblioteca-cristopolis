@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block titulo %}Reservas | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Empréstimos{% endblock %}
+{% block pagina_subtitulo %}Registro e histórico de empréstimos{% endblock %}
+
+{% block conteudo %}
+{% include "emprestimos/_abas.html" %}
+
+<section class="panel" aria-labelledby="reservar-heading">
+    <h2 id="reservar-heading">Reservar livro</h2>
+
+    <form method="post" action="{{ url_for('emprestimos.reservas') }}" class="form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form__grid">
+            <div class="field field--wide">
+                <label for="id_usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
+                <select id="id_usuario" name="id_usuario" class="input{% if erros.id_usuario %} input--error{% endif %}">
+                    <option value="">Selecione o usuário</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id_usuario }}"{% if selecionado_usuario == usuario.id_usuario|string %} selected{% endif %}>
+                        {{ usuario.nome }} ({{ usuario.cpf | cpf }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if erros.id_usuario %}<p class="field__error">{{ erros.id_usuario }}</p>{% endif %}
+            </div>
+
+            <div class="field field--wide">
+                <label for="id_livro">Livro esgotado <span class="field__required" title="Obrigatório">*</span></label>
+                <select id="id_livro" name="id_livro" class="input{% if erros.id_livro %} input--error{% endif %}">
+                    <option value="">Selecione o livro</option>
+                    {% for livro in livros %}
+                    <option value="{{ livro.id_livro }}"{% if selecionado_livro == livro.id_livro|string %} selected{% endif %}>
+                        {{ livro.titulo }}, de {{ livro.autor }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if erros.id_livro %}
+                <p class="field__error">{{ erros.id_livro }}</p>
+                {% elif not livros %}
+                <p class="field__hint">Nenhum livro esgotado no momento. Reservas só fazem sentido para livros sem exemplar disponível.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Registrar reserva</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel" aria-labelledby="reservas-heading">
+    <h2 id="reservas-heading" class="visually-hidden">Reservas ativas</h2>
+
+    <p class="panel__text">
+        <strong>{{ total }}</strong> {{ "reserva ativa" if total == 1 else "reservas ativas" }} no momento.
+    </p>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Livro</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Reservado em</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="visually-hidden">Ações</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reserva in reservas %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ reserva.livro_titulo }}</span>
+                        <span class="table__subtitle">{{ reserva.livro_autor }}</span>
+                    </td>
+                    <td>{{ reserva.usuario_nome }}</td>
+                    <td class="table__nowrap">{{ reserva.data_reserva | data_br }}</td>
+                    <td>
+                        {% if reserva.disponivel_para_retirada %}
+                        <span class="badge">Disponível para retirada</span>
+                        {% else %}
+                        <span class="badge badge--neutral">Aguardando</span>
+                        {% endif %}
+                    </td>
+                    <td class="table__actions">
+                        {% if reserva.disponivel_para_retirada %}
+                        <form method="post" action="{{ url_for('emprestimos.reservas_retirar', id_reserva=reserva.id_reserva) }}" class="link-action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="link-action-button">Registrar retirada</button>
+                        </form>
+                        {% endif %}
+                        <form method="post" action="{{ url_for('emprestimos.reservas_cancelar', id_reserva=reserva.id_reserva) }}" class="link-action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="link-action-button link-action-button--danger">Cancelar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="table__empty">Nenhuma reserva ativa no momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
