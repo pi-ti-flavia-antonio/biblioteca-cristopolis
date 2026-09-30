@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block titulo %}Empréstimos por período | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Relatórios{% endblock %}
+{% block pagina_subtitulo %}Consultas e relatórios simples{% endblock %}
+
+{% block conteudo %}
+{% include "relatorios/_abas.html" %}
+
+<section class="panel" aria-labelledby="periodo-heading">
+    <h2 id="periodo-heading" class="visually-hidden">Empréstimos por período</h2>
+
+    <form class="search" method="get" action="{{ url_for('relatorios.periodo') }}">
+        <div class="field">
+            <label for="inicio">De</label>
+            <input id="inicio" class="input{% if erros.data_inicio %} input--error{% endif %}" type="date" name="inicio" value="{{ data_inicio }}" max="{{ hoje }}">
+            {% if erros.data_inicio %}<p class="field__error">{{ erros.data_inicio }}</p>{% endif %}
+        </div>
+        <div class="field">
+            <label for="fim">Até</label>
+            <input id="fim" class="input{% if erros.data_fim %} input--error{% endif %}" type="date" name="fim" value="{{ data_fim }}" max="{{ hoje }}">
+            {% if erros.data_fim %}<p class="field__error">{{ erros.data_fim }}</p>{% endif %}
+        </div>
+        <button class="button button--primary" type="submit">Gerar relatório</button>
+        <a class="button button--secondary" href="{{ url_for('relatorios.periodo') }}">Últimos 30 dias</a>
+    </form>
+
+    {% if not erros %}
+    <p class="panel__text">
+        <strong>{{ total }}</strong> {{ "empréstimo registrado" if total == 1 else "empréstimos registrados" }}
+        entre {{ data_inicio | data_br }} e {{ data_fim | data_br }}.
+    </p>
+    {% endif %}
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Livro</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Empréstimo</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprestimo in emprestimos %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ emprestimo.livro_titulo }}</span>
+                        <span class="table__subtitle">{{ emprestimo.livro_autor }}</span>
+                    </td>
+                    <td>{{ emprestimo.usuario_nome }}</td>
+                    <td class="table__nowrap">{{ emprestimo.data_emprestimo | data_br }}</td>
+                    <td>
+                        {% if emprestimo.status == 'devolvido' %}
+                        <span class="badge badge--neutral">Devolvido</span>
+                        {% elif emprestimo.atrasado %}
+                        <span class="badge badge--overdue">Atrasado</span>
+                        {% else %}
+                        <span class="badge">Ativo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="table__empty">
+                        {% if erros %}
+                        Corrija o período acima para gerar o relatório.
+                        {% else %}
+                        Nenhum empréstimo registrado nesse período.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total > 0 %}
+    <div class="pagination">
+        <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
+        {% if total_paginas > 1 %}
+        <div class="pagination__links">
+            {% if pagina > 1 %}
+            <a class="button button--secondary button--small" href="{{ url_for('relatorios.periodo', inicio=data_inicio, fim=data_fim, pagina=pagina - 1) }}">Anterior</a>
+            {% endif %}
+            {% if pagina < total_paginas %}
+            <a class="button button--secondary button--small" href="{{ url_for('relatorios.periodo', inicio=data_inicio, fim=data_fim, pagina=pagina + 1) }}">Próxima</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

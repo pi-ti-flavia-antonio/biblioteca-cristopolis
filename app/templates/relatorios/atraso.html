@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block titulo %}Empréstimos em atraso | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Relatórios{% endblock %}
+{% block pagina_subtitulo %}Consultas e relatórios simples{% endblock %}
+
+{% block conteudo %}
+{% include "relatorios/_abas.html" %}
+
+<section class="panel" aria-labelledby="atraso-heading">
+    <h2 id="atraso-heading" class="visually-hidden">Empréstimos em atraso</h2>
+
+    <p class="panel__text">
+        <strong>{{ total }}</strong> {{ "empréstimo em atraso" if total == 1 else "empréstimos em atraso" }} no momento.
+    </p>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Livro</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Previsão de devolução</th>
+                    <th scope="col">Atraso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprestimo in emprestimos %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ emprestimo.livro_titulo }}</span>
+                        <span class="table__subtitle">{{ emprestimo.livro_autor }}</span>
+                    </td>
+                    <td>{{ emprestimo.usuario_nome }}</td>
+                    <td class="table__nowrap">{{ emprestimo.usuario_telefone | telefone }}</td>
+                    <td class="table__nowrap">{{ emprestimo.data_devolucao_prevista | data_br }}</td>
+                    <td><span class="badge badge--overdue">{{ emprestimo.dias_atraso }} {{ "dia" if emprestimo.dias_atraso == 1 else "dias" }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="table__empty">Nenhum empréstimo em atraso no momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total > 0 %}
+    <div class="pagination">
+        <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
+        {% if total_paginas > 1 %}
+        <div class="pagination__links">
+            {% if pagina > 1 %}
+            <a class="button button--secondary button--small" href="{{ url_for('relatorios.atraso', pagina=pagina - 1) }}">Anterior</a>
+            {% endif %}
+            {% if pagina < total_paginas %}
+            <a class="button button--secondary button--small" href="{{ url_for('relatorios.atraso', pagina=pagina + 1) }}">Próxima</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

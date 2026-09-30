@@ -1,0 +1,4 @@
+<nav class="tabs" aria-label="Seções de relatórios">
+    <a href="{{ url_for('relatorios.periodo') }}" class="tabs__item{% if aba == 'periodo' %} is-active{% endif %}"{% if aba == 'periodo' %} aria-current="page"{% endif %}>Empréstimos por período</a>
+    <a href="{{ url_for('relatorios.atraso') }}" class="tabs__item{% if aba == 'atraso' %} is-active{% endif %}"{% if aba == 'atraso' %} aria-current="page"{% endif %}>Empréstimos em atraso</a>
+</nav>

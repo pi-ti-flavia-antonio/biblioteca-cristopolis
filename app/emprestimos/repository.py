@@ -10,7 +10,7 @@ _SELECT_EMPRESTIMOS = """
     SELECT emp.id_emprestimo, emp.data_emprestimo, emp.data_devolucao_prevista,
            emp.status,
            l.titulo AS livro_titulo, l.autor AS livro_autor,
-           u.nome AS usuario_nome,
+           u.nome AS usuario_nome, u.telefone AS usuario_telefone,
            (emp.status = 'ativo' AND date(emp.data_devolucao_prevista) < date('now'))
                AS atrasado
       FROM emprestimo emp
@@ -137,6 +137,38 @@ def contar_atrasados():
         "SELECT COUNT(*) FROM emprestimo "
         "WHERE status = 'ativo' AND date(data_devolucao_prevista) < date('now')"
     ).fetchone()[0]
+
+
+def listar_atrasados(pagina=1):
+    parametros = {"limite": POR_PAGINA, "offset": (pagina - 1) * POR_PAGINA}
+    return get_db().execute(
+        f"{_SELECT_EMPRESTIMOS} WHERE emp.status = 'ativo' "
+        f"AND date(emp.data_devolucao_prevista) < date('now') "
+        f"ORDER BY emp.data_devolucao_prevista LIMIT :limite OFFSET :offset",
+        parametros,
+    ).fetchall()
+
+
+def contar_por_periodo(data_inicio, data_fim):
+    return get_db().execute(
+        "SELECT COUNT(*) FROM emprestimo emp "
+        "WHERE date(emp.data_emprestimo) BETWEEN :inicio AND :fim",
+        {"inicio": data_inicio.isoformat(), "fim": data_fim.isoformat()},
+    ).fetchone()[0]
+
+
+def listar_por_periodo(data_inicio, data_fim, pagina=1):
+    parametros = {
+        "inicio": data_inicio.isoformat(),
+        "fim": data_fim.isoformat(),
+        "limite": POR_PAGINA,
+        "offset": (pagina - 1) * POR_PAGINA,
+    }
+    return get_db().execute(
+        f"{_SELECT_EMPRESTIMOS} WHERE date(emp.data_emprestimo) BETWEEN :inicio AND :fim "
+        f"ORDER BY emp.data_emprestimo DESC, emp.id_emprestimo DESC LIMIT :limite OFFSET :offset",
+        parametros,
+    ).fetchall()
 
 
 def livro_disponivel(id_livro):

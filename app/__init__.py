@@ -32,6 +32,7 @@ def create_app(config=None):
     from .devolucoes import devolucoes_bp
     from .emprestimos import emprestimos_bp
     from .livros import livros_bp
+    from .relatorios import relatorios_bp
     from .routes import main_bp
     from .usuarios import usuarios_bp
 
@@ -40,6 +41,7 @@ def create_app(config=None):
     app.register_blueprint(usuarios_bp)
     app.register_blueprint(emprestimos_bp)
     app.register_blueprint(devolucoes_bp)
+    app.register_blueprint(relatorios_bp)
     app.register_error_handler(400, _pagina_erro)
     app.register_error_handler(404, _pagina_erro)
 
