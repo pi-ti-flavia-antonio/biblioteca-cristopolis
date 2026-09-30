@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block titulo %}Realizar empréstimo | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Empréstimos{% endblock %}
+{% block pagina_subtitulo %}Registro e histórico de empréstimos{% endblock %}
+
+{% block conteudo %}
+{% include "emprestimos/_abas.html" %}
+
+<section class="panel panel--narrow" aria-labelledby="form-heading">
+    <h2 id="form-heading">Realizar empréstimo</h2>
+
+    <form method="post" class="form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form__grid">
+            <div class="field field--wide">
+                <label for="id_usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
+                <select id="id_usuario" name="id_usuario" class="input{% if erros.id_usuario %} input--error{% endif %}">
+                    <option value="">Selecione o usuário</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id_usuario }}"{% if selecionado_usuario == usuario.id_usuario|string %} selected{% endif %}>
+                        {{ usuario.nome }} ({{ usuario.cpf | cpf }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if erros.id_usuario %}
+                <p class="field__error">{{ erros.id_usuario }}</p>
+                {% elif not usuarios %}
+                <p class="field__hint">Nenhum usuário cadastrado. <a class="link-action" href="{{ url_for('usuarios.cadastrar') }}">Cadastrar usuário</a></p>
+                {% endif %}
+            </div>
+
+            <div class="field field--wide">
+                <label for="id_livro">Livro <span class="field__required" title="Obrigatório">*</span></label>
+                <select id="id_livro" name="id_livro" class="input{% if erros.id_livro %} input--error{% endif %}">
+                    <option value="">Selecione o livro</option>
+                    {% for livro in livros %}
+                    <option value="{{ livro.id_livro }}"{% if selecionado_livro == livro.id_livro|string %} selected{% endif %}{% if livro.quantidade_disponivel <= 0 %} disabled{% endif %}>
+                        {{ livro.titulo }}, de {{ livro.autor }} ({{ livro.quantidade_disponivel }} {{ "disponível" if livro.quantidade_disponivel == 1 else "disponíveis" }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if erros.id_livro %}
+                <p class="field__error">{{ erros.id_livro }}</p>
+                {% elif not livros %}
+                <p class="field__hint">Nenhum livro cadastrado. <a class="link-action" href="{{ url_for('livros.cadastrar') }}">Cadastrar livro</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="panel__text">O prazo de devolução é de {{ prazo_dias }} dias a partir de hoje, calculado automaticamente ao confirmar.</p>
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Registrar empréstimo</button>
+            <a href="{{ url_for('emprestimos.consultar') }}" class="button button--secondary">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

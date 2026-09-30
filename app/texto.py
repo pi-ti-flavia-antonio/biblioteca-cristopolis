@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from datetime import date
 
 
 def normalizar(texto):
@@ -41,6 +42,13 @@ def formatar_cpf(digitos):
     if not digitos or len(digitos) != 11:
         return digitos or ""
     return f"{digitos[0:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:11]}"
+
+
+def formatar_data(iso):
+    """Converte 'aaaa-mm-dd' em 'dd/mm/aaaa' para exibição."""
+    if not iso:
+        return ""
+    return date.fromisoformat(iso).strftime("%d/%m/%Y")
 
 
 def formatar_telefone(digitos):

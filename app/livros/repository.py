@@ -77,6 +77,11 @@ def total_exemplares():
     return get_db().execute("SELECT COALESCE(SUM(quantidade_total), 0) FROM livro").fetchone()[0]
 
 
+def opcoes_para_emprestimo():
+    """Todos os livros, com disponibilidade, para o formulário de empréstimo."""
+    return get_db().execute(f"{_SELECT_LIVROS} ORDER BY normalizar(l.titulo)").fetchall()
+
+
 def contar_emprestimos(id_livro):
     return get_db().execute(
         "SELECT COUNT(*) FROM emprestimo WHERE id_livro = ?", (id_livro,)

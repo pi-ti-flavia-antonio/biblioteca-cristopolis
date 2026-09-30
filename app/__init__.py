@@ -5,7 +5,7 @@ from pathlib import Path
 from flask import Flask, render_template
 
 from . import database, security
-from .texto import formatar_cpf, formatar_telefone
+from .texto import formatar_cpf, formatar_data, formatar_telefone
 
 MENSAGENS_ERRO = {
     400: "Não foi possível concluir a ação. Volte à página anterior e tente de novo.",
@@ -27,7 +27,9 @@ def create_app(config=None):
     security.init_app(app)
     app.jinja_env.filters["cpf"] = formatar_cpf
     app.jinja_env.filters["telefone"] = formatar_telefone
+    app.jinja_env.filters["data_br"] = formatar_data
 
+    from .emprestimos import emprestimos_bp
     from .livros import livros_bp
     from .routes import main_bp
     from .usuarios import usuarios_bp
@@ -35,6 +37,7 @@ def create_app(config=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(livros_bp)
     app.register_blueprint(usuarios_bp)
+    app.register_blueprint(emprestimos_bp)
     app.register_error_handler(400, _pagina_erro)
     app.register_error_handler(404, _pagina_erro)
 

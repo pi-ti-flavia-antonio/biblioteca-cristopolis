@@ -376,6 +376,11 @@ button:focus-visible,
     color: var(--color-danger);
 }
 
+.badge--neutral {
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
+}
+
 /* Busca e paginação */
 .search {
     display: flex;

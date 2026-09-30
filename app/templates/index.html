@@ -20,7 +20,7 @@
     </article>
     <article class="stat-card">
         <span class="stat-card__label">Empréstimos ativos</span>
-        <span class="stat-card__value">{{ emprestimos_ativos|length }}</span>
+        <span class="stat-card__value">{{ total_emprestimos_ativos }}</span>
     </article>
     <article class="stat-card">
         <span class="stat-card__label">Usuários cadastrados</span>
@@ -46,15 +46,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for emprestimo in emprestimos_ativos %}
-                    <tr data-due-date="{{ emprestimo.data_prevista_iso }}">
+                    {% for emprestimo in emprestimos_recentes %}
+                    <tr>
                         <td>
                             <span class="table__title">{{ emprestimo.livro_titulo }}</span>
                             <span class="table__subtitle">{{ emprestimo.livro_autor }}</span>
                         </td>
                         <td>{{ emprestimo.usuario_nome }}</td>
                         <td>{{ emprestimo.data_prevista }}</td>
-                        <td><span class="badge">Ativo</span></td>
+                        <td>
+                            {% if emprestimo.atrasado %}
+                            <span class="badge badge--overdue">Atrasado</span>
+                            {% else %}
+                            <span class="badge">Ativo</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
@@ -71,7 +77,7 @@
             <h2 id="actions-heading">Ações rápidas</h2>
         </div>
         <div class="quick-actions">
-            <a href="#" class="button button--primary">Novo empréstimo</a>
+            <a href="{{ url_for('emprestimos.cadastrar') }}" class="button button--primary">Novo empréstimo</a>
             <a href="#" class="button button--secondary">Registrar devolução</a>
         </div>
     </section>

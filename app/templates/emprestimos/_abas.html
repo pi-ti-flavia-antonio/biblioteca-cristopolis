@@ -1,0 +1,4 @@
+<nav class="tabs" aria-label="Seções de empréstimos">
+    <a href="{{ url_for('emprestimos.consultar') }}" class="tabs__item{% if aba == 'consultar' %} is-active{% endif %}"{% if aba == 'consultar' %} aria-current="page"{% endif %}>Histórico de empréstimos</a>
+    <a href="{{ url_for('emprestimos.cadastrar') }}" class="tabs__item{% if aba == 'cadastrar' %} is-active{% endif %}"{% if aba == 'cadastrar' %} aria-current="page"{% endif %}>Realizar empréstimo</a>
+</nav>
