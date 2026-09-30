@@ -46,7 +46,8 @@ def consultar():
 @emprestimos_bp.route("/novo", methods=["GET", "POST"])
 def cadastrar():
     if request.method == "GET":
-        return _formulario()
+        id_livro = request.args.get("id_livro", "")
+        return _formulario(selecionado_livro=id_livro)
 
     id_usuario = request.form.get("id_usuario", type=int)
     id_livro = request.form.get("id_livro", type=int)

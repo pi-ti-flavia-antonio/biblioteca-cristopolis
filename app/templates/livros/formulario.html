@@ -36,8 +36,15 @@
         {% endif %}
     </div>
 
+    {% if voltar == 'emprestimo' %}
+    <div class="alert alert--success" role="status">
+        Cadastre o livro abaixo com as informações mínimas (título, autor e quantidade) para poder emprestá-lo em seguida.
+    </div>
+    {% endif %}
+
     <form method="post" class="form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="voltar" value="{{ voltar }}">
 
         <div class="form__grid">
             {{ campo("titulo", "Título", obrigatorio=True, tamanho_max=200, foco=not livro_id) }}
@@ -56,7 +63,7 @@
 
         <div class="form__actions">
             <button type="submit" class="button button--primary">Salvar</button>
-            <a href="{{ url_for('livros.consultar') }}" class="button button--secondary">Cancelar</a>
+            <a href="{{ url_for('emprestimos.cadastrar') if voltar == 'emprestimo' else url_for('livros.consultar') }}" class="button button--secondary">Cancelar</a>
             {% if livro_id %}
             <a href="{{ url_for('livros.excluir', id_livro=livro_id) }}" class="button button--danger form__actions-end">Excluir livro</a>
             {% endif %}

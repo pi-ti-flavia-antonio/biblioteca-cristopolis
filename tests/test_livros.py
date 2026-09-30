@@ -264,3 +264,29 @@ def test_menu_destaca_a_secao_atual(client):
 
     assert 'class="sidebar__link is-active" aria-current="page">Livros' in pagina
     assert 'class="sidebar__link">Início' in pagina
+
+
+def test_cadastro_vindo_do_emprestimo_mostra_aviso_e_cancelar_volta(client):
+    pagina = html(client.get("/livros/novo", query_string={"voltar": "emprestimo"}))
+
+    assert "para poder emprestá-lo em seguida" in pagina
+    assert 'name="voltar" value="emprestimo"' in pagina
+    assert 'href="/emprestimos/novo"' in pagina
+
+
+def test_cadastro_normal_nao_mostra_aviso_de_emprestimo(client):
+    pagina = html(client.get("/livros/novo"))
+
+    assert "para poder emprestá-lo em seguida" not in pagina
+    assert 'href="/livros"' in pagina
+
+
+def test_cadastro_vindo_do_emprestimo_redireciona_com_livro_selecionado(client, post, consulta):
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "voltar": "emprestimo"})
+
+    assert resposta.status_code == 302
+    assert resposta.headers["Location"].startswith("/emprestimos/novo?id_livro=")
+
+    id_livro = consulta("SELECT id_livro FROM livro")[0]["id_livro"]
+    pagina = html(client.get(resposta.headers["Location"]))
+    assert f'value="{id_livro}" selected' in pagina

@@ -193,3 +193,20 @@ def test_menu_destaca_a_secao_atual(client):
 
     assert 'class="sidebar__link is-active" aria-current="page">Empréstimos' in pagina
     assert 'class="sidebar__link">Usuários' in pagina
+
+
+def test_formulario_tem_link_para_cadastrar_livro_faltante(client, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)  # mesmo com livros cadastrados, o aviso deve aparecer
+
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert "não está cadastrado no acervo" in pagina
+    assert 'href="/livros/novo?voltar=emprestimo"' in pagina
+
+
+def test_id_livro_na_query_pre_seleciona_o_livro(client, criar_livro):
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"id_livro": id_livro}))
+
+    assert f'value="{id_livro}" selected' in pagina

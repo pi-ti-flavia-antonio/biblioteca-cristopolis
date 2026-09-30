@@ -31,7 +31,7 @@ def _checar_regras_do_banco(dados, erros, livro_atual=None):
             )
 
 
-def _formulario(valores, erros, aba=None, livro_id=None):
+def _formulario(valores, erros, aba=None, livro_id=None, voltar=""):
     resposta = render_template(
         "livros/formulario.html",
         aba=aba,
@@ -39,6 +39,7 @@ def _formulario(valores, erros, aba=None, livro_id=None):
         valores=valores,
         erros=erros,
         categorias=repository.nomes_categorias(),
+        voltar=voltar,
     )
     return resposta, (400 if erros else 200)
 
@@ -73,16 +74,21 @@ def consultar():
 @livros_bp.route("/novo", methods=["GET", "POST"])
 def cadastrar():
     if request.method == "GET":
-        return _formulario(validacao.valores_iniciais(), {}, aba="cadastrar")
+        voltar = request.args.get("voltar", "")
+        return _formulario(validacao.valores_iniciais(), {}, aba="cadastrar", voltar=voltar)
 
+    voltar = request.form.get("voltar", "")
     valores = validacao.valores_do_formulario(request.form)
     dados, erros = validacao.validar_livro(valores)
     _checar_regras_do_banco(dados, erros)
     if erros:
-        return _formulario(valores, erros, aba="cadastrar")
+        return _formulario(valores, erros, aba="cadastrar", voltar=voltar)
 
-    repository.criar(dados)
+    id_livro = repository.criar(dados)
     flash(f"Livro cadastrado: {dados['titulo']}.", "success")
+
+    if voltar == "emprestimo":
+        return redirect(url_for("emprestimos.cadastrar", id_livro=id_livro))
     return redirect(url_for("livros.cadastrar"))
 
 

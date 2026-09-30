@@ -43,9 +43,11 @@
                 </select>
                 {% if erros.id_livro %}
                 <p class="field__error">{{ erros.id_livro }}</p>
-                {% elif not livros %}
-                <p class="field__hint">Nenhum livro cadastrado. <a class="link-action" href="{{ url_for('livros.cadastrar') }}">Cadastrar livro</a></p>
                 {% endif %}
+                <p class="field__hint">
+                    O livro que você procura não está cadastrado no acervo?
+                    <a class="link-action" href="{{ url_for('livros.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
+                </p>
             </div>
         </div>
 
