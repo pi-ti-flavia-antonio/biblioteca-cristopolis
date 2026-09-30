@@ -27,21 +27,30 @@ class UsuarioComPendencia(Exception):
     """O usuário já está com um exemplar emprestado."""
 
 
+class EmprestimoInvalido(Exception):
+    """O empréstimo não existe ou já foi devolvido."""
+
+
 def _escapar_like(texto):
     return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-def _filtro_busca(termo):
+def _filtro_busca(termo, apenas_ativos=False):
     termo = termo.strip()
-    if not termo:
-        return "", {}
+    condicoes = ["emp.status = 'ativo'"] if apenas_ativos else []
+    parametros = {}
 
-    condicoes = [
-        "normalizar(l.titulo) LIKE :texto ESCAPE '\\'",
-        "normalizar(u.nome) LIKE :texto ESCAPE '\\'",
-    ]
-    parametros = {"texto": f"%{_escapar_like(normalizar(termo))}%"}
-    return "WHERE " + " OR ".join(condicoes), parametros
+    if termo:
+        parametros["texto"] = f"%{_escapar_like(normalizar(termo))}%"
+        busca = (
+            "(normalizar(l.titulo) LIKE :texto ESCAPE '\\' "
+            "OR normalizar(u.nome) LIKE :texto ESCAPE '\\')"
+        )
+        condicoes.append(busca)
+
+    if not condicoes:
+        return "", {}
+    return "WHERE " + " AND ".join(condicoes), parametros
 
 
 def contar(termo=""):
@@ -61,6 +70,54 @@ def listar(termo="", pagina=1):
         f"ORDER BY emp.data_emprestimo DESC, emp.id_emprestimo DESC LIMIT :limite OFFSET :offset",
         parametros,
     ).fetchall()
+
+
+def contar_ativos_busca(termo=""):
+    filtro, parametros = _filtro_busca(termo, apenas_ativos=True)
+    return get_db().execute(
+        f"SELECT COUNT(*) FROM emprestimo emp JOIN livro l ON l.id_livro = emp.id_livro "
+        f"JOIN usuario u ON u.id_usuario = emp.id_usuario {filtro}",
+        parametros,
+    ).fetchone()[0]
+
+
+def listar_ativos(termo="", pagina=1):
+    filtro, parametros = _filtro_busca(termo, apenas_ativos=True)
+    parametros = {**parametros, "limite": POR_PAGINA, "offset": (pagina - 1) * POR_PAGINA}
+    return get_db().execute(
+        f"{_SELECT_EMPRESTIMOS} {filtro} "
+        f"ORDER BY emp.data_devolucao_prevista, emp.id_emprestimo LIMIT :limite OFFSET :offset",
+        parametros,
+    ).fetchall()
+
+
+def obter(id_emprestimo):
+    return get_db().execute(
+        f"{_SELECT_EMPRESTIMOS} WHERE emp.id_emprestimo = ?", (id_emprestimo,)
+    ).fetchone()
+
+
+def registrar_devolucao(id_emprestimo):
+    emprestimo = obter(id_emprestimo)
+    if emprestimo is None or emprestimo["status"] != "ativo":
+        raise EmprestimoInvalido(id_emprestimo)
+
+    hoje = date.today()
+    prevista = date.fromisoformat(emprestimo["data_devolucao_prevista"])
+    dias_atraso = max((hoje - prevista).days, 0)
+
+    db = get_db()
+    with db:
+        db.execute(
+            "UPDATE emprestimo SET status = 'devolvido', data_devolucao_real = ? WHERE id_emprestimo = ?",
+            (hoje.isoformat(), id_emprestimo),
+        )
+
+    return {
+        "livro_titulo": emprestimo["livro_titulo"],
+        "usuario_nome": emprestimo["usuario_nome"],
+        "dias_atraso": dias_atraso,
+    }
 
 
 def recentes(limite=5):

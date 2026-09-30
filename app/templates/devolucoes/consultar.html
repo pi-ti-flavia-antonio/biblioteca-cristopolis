@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block titulo %}Devoluções | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Devoluções{% endblock %}
+{% block pagina_subtitulo %}Registro de devoluções{% endblock %}
+
+{% block conteudo %}
+<section class="panel" aria-labelledby="devolucoes-heading">
+    <h2 id="devolucoes-heading" class="visually-hidden">Registrar devolução</h2>
+
+    <form class="search" method="get" action="{{ url_for('devolucoes.consultar') }}" role="search">
+        <label class="visually-hidden" for="busca">Buscar empréstimo ativo</label>
+        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por livro ou usuário" autofocus>
+        <button class="button button--primary" type="submit">Buscar</button>
+        {% if termo %}
+        <a class="button button--secondary" href="{{ url_for('devolucoes.consultar') }}">Limpar</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Livro</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Empréstimo</th>
+                    <th scope="col">Previsão de devolução</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="visually-hidden">Ação</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprestimo in emprestimos %}
+                <tr>
+                    <td>
+                        <span class="table__title">{{ emprestimo.livro_titulo }}</span>
+                        <span class="table__subtitle">{{ emprestimo.livro_autor }}</span>
+                    </td>
+                    <td>{{ emprestimo.usuario_nome }}</td>
+                    <td class="table__nowrap">{{ emprestimo.data_emprestimo | data_br }}</td>
+                    <td class="table__nowrap">{{ emprestimo.data_devolucao_prevista | data_br }}</td>
+                    <td>
+                        {% if emprestimo.atrasado %}
+                        <span class="badge badge--overdue">Atrasado</span>
+                        {% else %}
+                        <span class="badge">Ativo</span>
+                        {% endif %}
+                    </td>
+                    <td class="table__actions">
+                        <form method="post" action="{{ url_for('devolucoes.registrar', id_emprestimo=emprestimo.id_emprestimo) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="button button--primary button--small">Registrar devolução</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="table__empty">
+                        {% if termo %}
+                        Nenhum empréstimo ativo encontrado para "{{ termo }}".
+                        {% else %}
+                        Nenhum empréstimo ativo no momento.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total > 0 %}
+    <div class="pagination">
+        <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
+        {% if total_paginas > 1 %}
+        <div class="pagination__links">
+            {% if pagina > 1 %}
+            <a class="button button--secondary button--small" href="{{ url_for('devolucoes.consultar', q=termo or None, pagina=pagina - 1) }}">Anterior</a>
+            {% endif %}
+            {% if pagina < total_paginas %}
+            <a class="button button--secondary button--small" href="{{ url_for('devolucoes.consultar', q=termo or None, pagina=pagina + 1) }}">Próxima</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

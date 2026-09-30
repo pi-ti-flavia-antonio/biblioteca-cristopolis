@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import pytest
 
 from app import create_app
@@ -52,6 +54,10 @@ def criar_livro(app):
 @pytest.fixture
 def registrar_emprestimo(app):
     def _registrar(id_livro, status="ativo", id_usuario=None):
+        # Datas relativas a hoje, não fixas: um empréstimo "ativo" recém-criado
+        # não deve virar "atrasado" sozinho só porque o tempo passou.
+        hoje = date.today()
+        prevista = hoje + timedelta(days=14)
         with app.app_context():
             db = get_db()
             with db:
@@ -60,9 +66,9 @@ def registrar_emprestimo(app):
                 db.execute(
                     """
                     INSERT INTO emprestimo (data_emprestimo, data_devolucao_prevista, status, id_usuario, id_livro)
-                    VALUES ('2026-09-01', '2026-09-15', ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?)
                     """,
-                    (status, id_usuario, id_livro),
+                    (hoje.isoformat(), prevista.isoformat(), status, id_usuario, id_livro),
                 )
             return id_usuario
 
