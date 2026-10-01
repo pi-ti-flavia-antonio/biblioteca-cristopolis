@@ -4,7 +4,7 @@ from ..database import get_db
 from ..texto import normalizar
 
 POR_PAGINA = 25
-PRAZO_PADRAO_DIAS = 14
+PRAZO_PADRAO_DIAS = 30
 
 _SELECT_EMPRESTIMOS = """
     SELECT emp.id_emprestimo, emp.data_emprestimo, emp.data_devolucao_prevista,

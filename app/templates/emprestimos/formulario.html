@@ -11,21 +11,48 @@
     <h2 id="form-heading">Realizar empréstimo</h2>
 
     <form class="search" method="get" action="{{ url_for('emprestimos.cadastrar') }}" role="search">
+        <label class="visually-hidden" for="q_usuario">Pesquisar usuário</label>
+        <input id="q_usuario" class="input" type="search" name="q_usuario" value="{{ termo_usuario }}" placeholder="Buscar usuário por nome ou CPF" autofocus>
+        <input type="hidden" name="q" value="{{ termo }}">
+        <button class="button button--primary" type="submit">Buscar</button>
+        {% if termo_usuario %}
+        <a class="button button--secondary" href="{{ url_for('emprestimos.cadastrar', q=termo or None) }}">Limpar</a>
+        {% endif %}
+    </form>
+
+    <form class="search" method="get" action="{{ url_for('emprestimos.cadastrar') }}" role="search">
         <label class="visually-hidden" for="q">Pesquisar livro</label>
-        <input id="q" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar livro por título, autor ou ISBN" autofocus>
+        <input id="q" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar livro por título, autor ou ISBN">
+        <input type="hidden" name="q_usuario" value="{{ termo_usuario }}">
         <button class="button button--primary" type="submit">Buscar</button>
         {% if termo %}
-        <a class="button button--secondary" href="{{ url_for('emprestimos.cadastrar') }}">Limpar</a>
+        <a class="button button--secondary" href="{{ url_for('emprestimos.cadastrar', q_usuario=termo_usuario or None) }}">Limpar</a>
         {% endif %}
     </form>
 
     <form method="post" class="form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="q" value="{{ termo }}">
+        <input type="hidden" name="q_usuario" value="{{ termo_usuario }}">
 
         <div class="form__grid">
             <div class="field field--wide">
                 <label for="id_usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
+                {% if termo_usuario %}
+                    {% if usuarios %}
+                    <div class="radio-list" role="radiogroup" aria-label="Usuários encontrados para &quot;{{ termo_usuario }}&quot;">
+                        {% for usuario in usuarios %}
+                        <label class="radio-list__item">
+                            <input type="radio" name="id_usuario" value="{{ usuario.id_usuario }}"
+                                   {%- if selecionado_usuario == usuario.id_usuario|string %} checked{% endif %}>
+                            {{ usuario.nome }} ({{ usuario.cpf | cpf }})
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="field__hint">Nenhum usuário encontrado para "{{ termo_usuario }}".</p>
+                    {% endif %}
+                {% else %}
                 <select id="id_usuario" name="id_usuario" class="input{% if erros.id_usuario %} input--error{% endif %}">
                     <option value="">Selecione o usuário</option>
                     {% for usuario in usuarios %}
@@ -34,9 +61,10 @@
                     </option>
                     {% endfor %}
                 </select>
+                {% endif %}
                 {% if erros.id_usuario %}
                 <p class="field__error">{{ erros.id_usuario }}</p>
-                {% elif not usuarios %}
+                {% elif not usuarios and not termo_usuario %}
                 <p class="field__hint">Nenhum usuário cadastrado. <a class="link-action" href="{{ url_for('usuarios.cadastrar') }}">Cadastrar usuário</a></p>
                 {% endif %}
             </div>

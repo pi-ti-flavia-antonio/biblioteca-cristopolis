@@ -38,14 +38,14 @@ def test_realizar_emprestimo_valido(client, post, criar_usuario, criar_livro):
     assert ">Ativo<" in pagina
 
 
-def test_emprestimo_calcula_previsao_de_14_dias(client, post, criar_usuario, criar_livro, consulta):
+def test_emprestimo_calcula_previsao_de_30_dias(client, post, criar_usuario, criar_livro, consulta):
     id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
     id_livro = criar_livro("Dom Casmurro", quantidade=1)
 
     post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": id_livro})
 
     linha = consulta("SELECT data_emprestimo, data_devolucao_prevista FROM emprestimo")[0]
-    esperado = date.fromisoformat(linha["data_emprestimo"]) + timedelta(days=14)
+    esperado = date.fromisoformat(linha["data_emprestimo"]) + timedelta(days=30)
     assert linha["data_devolucao_prevista"] == esperado.isoformat()
 
 
@@ -264,3 +264,40 @@ def test_sem_busca_mostra_lista_suspensa_normal(client, criar_livro):
 
     assert '<select id="id_livro"' in pagina
     assert 'type="radio" name="id_livro"' not in pagina
+
+
+def test_busca_de_usuario_encontra_nome_com_ou_sem_acentuacao(client, criar_usuario):
+    criar_usuario("José Antônio", cpf="12345678909")
+    criar_usuario("Carlos Souza", cpf="52998224725")
+
+    for termo in ["jose antonio", "JOSÉ ANTÔNIO", "antonio", "ANTÔNIO"]:
+        pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": termo}))
+        assert "José Antônio" in pagina, termo
+        assert "Carlos Souza" not in pagina, termo
+
+
+def test_busca_de_usuario_encontra_cpf_com_ou_sem_pontuacao(client, criar_usuario):
+    criar_usuario("José Antônio", cpf="12345678909")
+    criar_usuario("Carlos Souza", cpf="52998224725")
+
+    for termo in ["529.982.247-25", "52998224725", "529 982 247 25"]:
+        pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": termo}))
+        assert "Carlos Souza" in pagina, termo
+        assert "José Antônio" not in pagina, termo
+
+
+def test_busca_de_usuario_sem_resultado_mostra_mensagem(client, criar_usuario):
+    criar_usuario("Maria Oliveira", cpf="12345678909")
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "xyz"}))
+
+    assert 'Nenhum usuário encontrado para "xyz".' in pagina
+
+
+def test_busca_de_usuario_mostra_opcoes_clicaveis_em_vez_de_lista_suspensa(client, criar_usuario):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "maria"}))
+
+    assert f'<input type="radio" name="id_usuario" value="{id_usuario}"' in pagina
+    assert '<select id="id_usuario"' not in pagina

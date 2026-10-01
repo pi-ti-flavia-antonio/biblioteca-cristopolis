@@ -59,9 +59,15 @@ def total_usuarios():
     return get_db().execute("SELECT COUNT(*) FROM usuario").fetchone()[0]
 
 
-def opcoes_para_emprestimo():
-    """Todos os usuários, para o formulário de empréstimo."""
-    return get_db().execute(f"{_SELECT_USUARIOS} ORDER BY normalizar(nome)").fetchall()
+def opcoes_para_emprestimo(termo=""):
+    """Usuários para o formulário de empréstimo.
+
+    Aceita um termo opcional (nome ou CPF) para filtrar a lista.
+    """
+    filtro, parametros = _filtro_busca(termo)
+    return get_db().execute(
+        f"{_SELECT_USUARIOS} {filtro} ORDER BY normalizar(nome)", parametros
+    ).fetchall()
 
 
 def contar_emprestimos(id_usuario):
