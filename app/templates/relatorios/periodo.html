@@ -22,7 +22,10 @@
             {% if erros.data_fim %}<p class="field__error">{{ erros.data_fim }}</p>{% endif %}
         </div>
         <button class="button button--primary" type="submit">Gerar relatório</button>
-        <a class="button button--secondary" href="{{ url_for('relatorios.periodo') }}">Últimos 30 dias</a>
+        <a class="button button--secondary{% if e_periodo_padrao %} button--active{% endif %}" href="{{ url_for('relatorios.periodo') }}" aria-pressed="{{ 'true' if e_periodo_padrao else 'false' }}">Últimos 30 dias</a>
+        {% if not erros %}
+        <a class="button button--secondary" href="{{ url_for('relatorios.periodo_pdf', inicio=data_inicio, fim=data_fim) }}">Baixar PDF</a>
+        {% endif %}
     </form>
 
     {% if not erros %}

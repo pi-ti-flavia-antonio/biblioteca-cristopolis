@@ -95,6 +95,38 @@ def test_link_ultimos_30_dias_aponta_para_relatorio_sem_parametros(client):
     assert 'href="/relatorios"' in pagina
 
 
+def test_botao_ultimos_30_dias_fica_marcado_quando_e_o_periodo_atual(client):
+    pagina = html(client.get("/relatorios"))
+
+    assert 'aria-pressed="true"' in pagina
+
+
+def test_botao_ultimos_30_dias_nao_fica_marcado_com_outro_periodo(client):
+    pagina = html(client.get("/relatorios", query_string={"inicio": "2020-01-01", "fim": "2020-01-02"}))
+
+    assert 'aria-pressed="false"' in pagina
+
+
+def test_baixar_pdf_retorna_arquivo_pdf(app, client, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+    hoje = date.today()
+    _inserir_emprestimo(app, id_usuario, id_livro, hoje.isoformat(), (hoje + timedelta(days=30)).isoformat())
+
+    resposta = client.get("/relatorios/periodo.pdf")
+
+    assert resposta.status_code == 200
+    assert resposta.mimetype == "application/pdf"
+    assert resposta.data[:4] == b"%PDF"
+
+
+def test_baixar_pdf_com_periodo_invalido_volta_para_o_relatorio(client):
+    resposta = client.get("/relatorios/periodo.pdf", query_string={"inicio": "2026-01-01", "fim": "2020-01-01"})
+
+    assert resposta.status_code == 302
+    assert resposta.headers["Location"].startswith("/relatorios")
+
+
 def test_atraso_lista_vazia_mostra_mensagem(client):
     pagina = html(client.get("/relatorios/atraso"))
 

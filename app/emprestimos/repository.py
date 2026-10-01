@@ -171,6 +171,15 @@ def listar_por_periodo(data_inicio, data_fim, pagina=1):
     ).fetchall()
 
 
+def listar_por_periodo_completo(data_inicio, data_fim):
+    """Todos os empréstimos do período, sem paginação (para o PDF do relatório)."""
+    return get_db().execute(
+        f"{_SELECT_EMPRESTIMOS} WHERE date(emp.data_emprestimo) BETWEEN :inicio AND :fim "
+        f"ORDER BY emp.data_emprestimo DESC, emp.id_emprestimo DESC",
+        {"inicio": data_inicio.isoformat(), "fim": data_fim.isoformat()},
+    ).fetchall()
+
+
 def livro_disponivel(id_livro):
     linha = get_db().execute(
         """

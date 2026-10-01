@@ -569,6 +569,12 @@ button:focus-visible,
     background-color: var(--color-border);
 }
 
+.button--active {
+    border-color: var(--color-primary);
+    background-color: #eaf1fa;
+    color: var(--color-primary-dark);
+}
+
 .button--danger {
     background-color: var(--color-danger);
     color: #fff;

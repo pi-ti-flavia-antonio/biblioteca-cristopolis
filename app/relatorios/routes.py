@@ -1,8 +1,9 @@
 import math
 from datetime import date, timedelta
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request, send_file, url_for
 
+from . import pdf
 from ..emprestimos import repository as emprestimos_repo
 
 relatorios_bp = Blueprint("relatorios", __name__, url_prefix="/relatorios")
@@ -57,6 +58,7 @@ def periodo():
     total_paginas = max(math.ceil(total / emprestimos_repo.POR_PAGINA), 1)
     pagina = min(max(request.args.get("pagina", 1, type=int), 1), total_paginas)
     lista = [] if erros else emprestimos_repo.listar_por_periodo(data_inicio, data_fim, pagina)
+    padrao_inicio, padrao_fim = _periodo_padrao()
 
     return render_template(
         "relatorios/periodo.html",
@@ -71,7 +73,26 @@ def periodo():
         total_paginas=total_paginas,
         inicio=(pagina - 1) * emprestimos_repo.POR_PAGINA + 1 if total else 0,
         fim=min(pagina * emprestimos_repo.POR_PAGINA, total),
+        e_periodo_padrao=not erros and (data_inicio, data_fim) == (padrao_inicio, padrao_fim),
     )
+
+
+@relatorios_bp.get("/periodo.pdf")
+def periodo_pdf():
+    data_inicio, data_fim, erros = _validar_periodo(
+        request.args.get("inicio", ""), request.args.get("fim", "")
+    )
+    if erros:
+        return redirect(url_for(
+            "relatorios.periodo", inicio=request.args.get("inicio", ""), fim=request.args.get("fim", "")
+        ))
+
+    total = emprestimos_repo.contar_por_periodo(data_inicio, data_fim)
+    emprestimos = emprestimos_repo.listar_por_periodo_completo(data_inicio, data_fim)
+    buffer = pdf.gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos)
+
+    nome_arquivo = f"relatorio-emprestimos-{data_inicio.isoformat()}-a-{data_fim.isoformat()}.pdf"
+    return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=nome_arquivo)
 
 
 @relatorios_bp.get("/atraso")
