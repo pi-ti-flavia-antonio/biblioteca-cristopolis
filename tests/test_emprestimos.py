@@ -246,3 +246,21 @@ def test_busca_de_livro_preserva_termo_apos_erro_de_validacao(post, criar_livro)
     assert resposta.status_code == 400
     assert 'value="casmurro"' in pagina
     assert "Dom Casmurro" in pagina
+
+
+def test_busca_de_livro_mostra_opcoes_clicaveis_em_vez_de_lista_suspensa(client, criar_livro):
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q": "cas"}))
+
+    assert f'<input type="radio" name="id_livro" value="{id_livro}"' in pagina
+    assert '<select id="id_livro"' not in pagina
+
+
+def test_sem_busca_mostra_lista_suspensa_normal(client, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)
+
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert '<select id="id_livro"' in pagina
+    assert 'type="radio" name="id_livro"' not in pagina

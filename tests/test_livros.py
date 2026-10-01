@@ -94,6 +94,21 @@ def test_isbn_duplicado_e_recusado(post, consulta):
     assert len(consulta("SELECT id_livro FROM livro")) == 1
 
 
+def test_formulario_sugere_categorias_padrao_mesmo_sem_livros_cadastrados(client):
+    pagina = html(client.get("/livros/novo"))
+
+    assert '<option value="Infantil">' in pagina
+    assert '<option value="Romance">' in pagina
+
+
+def test_categoria_personalizada_passa_a_ser_sugerida_tambem(client, post):
+    post("/livros/novo", {**LIVRO_VALIDO, "categoria": "Mangá"})
+
+    pagina = html(client.get("/livros/novo"))
+
+    assert '<option value="Mangá">' in pagina
+
+
 def test_categoria_e_reaproveitada_sem_diferenciar_acento_e_caixa(post, consulta):
     post("/livros/novo", {**LIVRO_VALIDO, "titulo": "A", "categoria": "Ficção"})
     post("/livros/novo", {**LIVRO_VALIDO, "titulo": "B", "categoria": "ficcao"})

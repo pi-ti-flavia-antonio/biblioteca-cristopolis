@@ -43,6 +43,22 @@
 
             <div class="field field--wide">
                 <label for="id_livro">Livro <span class="field__required" title="Obrigatório">*</span></label>
+                {% if termo %}
+                    {% if livros %}
+                    <div class="radio-list" role="radiogroup" aria-label="Livros encontrados para &quot;{{ termo }}&quot;">
+                        {% for livro in livros %}
+                        <label class="radio-list__item{% if livro.quantidade_disponivel <= 0 %} radio-list__item--disabled{% endif %}">
+                            <input type="radio" name="id_livro" value="{{ livro.id_livro }}"
+                                   {%- if selecionado_livro == livro.id_livro|string %} checked{% endif %}
+                                   {%- if livro.quantidade_disponivel <= 0 %} disabled{% endif %}>
+                            {{ livro.titulo }}, de {{ livro.autor }} ({{ livro.quantidade_disponivel }} {{ "disponível" if livro.quantidade_disponivel == 1 else "disponíveis" }})
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="field__hint">Nenhum livro encontrado para "{{ termo }}".</p>
+                    {% endif %}
+                {% else %}
                 <select id="id_livro" name="id_livro" class="input{% if erros.id_livro %} input--error{% endif %}">
                     <option value="">Selecione o livro</option>
                     {% for livro in livros %}
@@ -51,10 +67,9 @@
                     </option>
                     {% endfor %}
                 </select>
+                {% endif %}
                 {% if erros.id_livro %}
                 <p class="field__error">{{ erros.id_livro }}</p>
-                {% elif termo and not livros %}
-                <p class="field__hint">Nenhum livro encontrado para "{{ termo }}".</p>
                 {% endif %}
                 <p class="field__hint">
                     O livro que você procura não está cadastrado no acervo?

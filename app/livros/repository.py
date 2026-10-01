@@ -3,6 +3,25 @@ from ..texto import limpar_isbn, normalizar
 
 POR_PAGINA = 25
 
+CATEGORIAS_PADRAO = [
+    "Romance",
+    "Ficção Científica",
+    "Fantasia",
+    "Infantil",
+    "Juvenil",
+    "Biografia",
+    "História",
+    "Didático",
+    "Poesia",
+    "Conto",
+    "Autoajuda",
+    "Terror",
+    "Policial e Suspense",
+    "Religião",
+    "Ciências",
+    "Quadrinhos e HQs",
+]
+
 _SELECT_LIVROS = """
     SELECT l.id_livro, l.titulo, l.autor, l.isbn, l.ano_publicacao,
            l.quantidade_total, c.nome AS categoria,
@@ -69,8 +88,10 @@ def buscar_por_isbn(isbn):
 
 
 def nomes_categorias():
-    linhas = get_db().execute("SELECT nome FROM categoria ORDER BY nome").fetchall()
-    return [linha["nome"] for linha in linhas]
+    """Categorias padrão (sempre sugeridas) mescladas com as já cadastradas."""
+    existentes = {linha["nome"] for linha in get_db().execute("SELECT nome FROM categoria").fetchall()}
+    todas = existentes | set(CATEGORIAS_PADRAO)
+    return sorted(todas, key=normalizar)
 
 
 def total_exemplares():
