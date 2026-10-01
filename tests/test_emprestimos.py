@@ -210,3 +210,39 @@ def test_id_livro_na_query_pre_seleciona_o_livro(client, criar_livro):
     pagina = html(client.get("/emprestimos/novo", query_string={"id_livro": id_livro}))
 
     assert f'value="{id_livro}" selected' in pagina
+
+
+def test_busca_de_livro_filtra_por_titulo_autor_ou_isbn(client, criar_livro):
+    criar_livro("Dom Casmurro", "Machado de Assis", isbn="9788535902775")
+    criar_livro("1984", "George Orwell")
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q": "casmurro"}))
+    assert "Dom Casmurro" in pagina
+    assert "1984" not in pagina
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q": "orwell"}))
+    assert "1984" in pagina
+    assert "Dom Casmurro" not in pagina
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q": "9788535902775"}))
+    assert "Dom Casmurro" in pagina
+    assert "1984" not in pagina
+
+
+def test_busca_de_livro_sem_resultado_mostra_mensagem(client, criar_livro):
+    criar_livro("Dom Casmurro")
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"q": "xyz"}))
+
+    assert 'Nenhum livro encontrado para "xyz".' in pagina
+
+
+def test_busca_de_livro_preserva_termo_apos_erro_de_validacao(post, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)
+
+    resposta = post("/emprestimos/novo", {"id_usuario": "", "id_livro": "", "q": "casmurro"})
+    pagina = html(resposta)
+
+    assert resposta.status_code == 400
+    assert 'value="casmurro"' in pagina
+    assert "Dom Casmurro" in pagina

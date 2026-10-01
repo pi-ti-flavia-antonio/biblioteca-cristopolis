@@ -10,8 +10,18 @@
 <section class="panel panel--narrow" aria-labelledby="form-heading">
     <h2 id="form-heading">Realizar empréstimo</h2>
 
+    <form class="search" method="get" action="{{ url_for('emprestimos.cadastrar') }}" role="search">
+        <label class="visually-hidden" for="q">Pesquisar livro</label>
+        <input id="q" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar livro por título, autor ou ISBN" autofocus>
+        <button class="button button--primary" type="submit">Buscar</button>
+        {% if termo %}
+        <a class="button button--secondary" href="{{ url_for('emprestimos.cadastrar') }}">Limpar</a>
+        {% endif %}
+    </form>
+
     <form method="post" class="form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="q" value="{{ termo }}">
 
         <div class="form__grid">
             <div class="field field--wide">
@@ -43,6 +53,8 @@
                 </select>
                 {% if erros.id_livro %}
                 <p class="field__error">{{ erros.id_livro }}</p>
+                {% elif termo and not livros %}
+                <p class="field__hint">Nenhum livro encontrado para "{{ termo }}".</p>
                 {% endif %}
                 <p class="field__hint">
                     O livro que você procura não está cadastrado no acervo?

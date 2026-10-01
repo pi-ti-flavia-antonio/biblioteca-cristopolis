@@ -17,7 +17,9 @@ class _RespostaFalsa:
 
 
 def _get_falso(respostas_por_url):
-    def _get(url, timeout=None):
+    def _get(url, timeout=None, params=None):
+        if params:
+            url = f"{url}?{params}"
         for pedaco, resposta in respostas_por_url.items():
             if pedaco in url:
                 return resposta
@@ -26,7 +28,7 @@ def _get_falso(respostas_por_url):
     return _get
 
 
-def test_encontrado_resolve_titulo_autor_e_ano(monkeypatch):
+def test_encontrado_na_open_library_resolve_titulo_autor_e_ano(monkeypatch):
     respostas = {
         "/isbn/0201558025.json": _RespostaFalsa({
             "title": "Concrete mathematics",
@@ -73,8 +75,44 @@ def test_sem_authors_usa_by_statement_como_autor(monkeypatch):
     assert resultado["autor"] == "Fulano de Tal"
 
 
-def test_isbn_nao_encontrado_retorna_none(monkeypatch):
-    monkeypatch.setattr(requests, "get", lambda *a, **k: _RespostaFalsa({}, status_ok=False))
+def test_nao_encontrado_na_open_library_tenta_google_books(monkeypatch):
+    respostas = {
+        "/isbn/9788535902775.json": _RespostaFalsa({}, status_ok=False),
+        "googleapis.com/books/v1/volumes": _RespostaFalsa({
+            "items": [
+                {
+                    "volumeInfo": {
+                        "title": "Dom Casmurro",
+                        "authors": ["Machado de Assis"],
+                        "publishedDate": "1899",
+                    }
+                }
+            ]
+        }),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
+
+    resultado = isbn_lookup.buscar_por_isbn("9788535902775")
+
+    assert resultado == {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899}
+
+
+def test_nao_encontrado_em_nenhuma_das_duas_fontes_retorna_none(monkeypatch):
+    respostas = {
+        "/isbn/0000000000.json": _RespostaFalsa({}, status_ok=False),
+        "googleapis.com/books/v1/volumes": _RespostaFalsa({"items": []}),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
+
+    assert isbn_lookup.buscar_por_isbn("0000000000") is None
+
+
+def test_google_books_sem_items_retorna_none(monkeypatch):
+    respostas = {
+        "/isbn/0000000000.json": _RespostaFalsa({}, status_ok=False),
+        "googleapis.com/books/v1/volumes": _RespostaFalsa({}),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
 
     assert isbn_lookup.buscar_por_isbn("0000000000") is None
 
@@ -104,7 +142,7 @@ def test_timeout_retorna_none(monkeypatch):
 
 
 def test_falha_ao_resolver_autor_nao_quebra_a_busca(monkeypatch):
-    def _get(url, timeout=None):
+    def _get(url, timeout=None, params=None):
         if "/isbn/" in url:
             return _RespostaFalsa({"title": "Livro Z", "authors": [{"key": "/authors/A1"}]})
         raise requests.ConnectionError("falhou ao buscar autor")

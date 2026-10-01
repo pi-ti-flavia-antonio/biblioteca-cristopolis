@@ -9,13 +9,14 @@ from ..usuarios import repository as usuarios_repository
 emprestimos_bp = Blueprint("emprestimos", __name__, url_prefix="/emprestimos")
 
 
-def _formulario(erros=None, selecionado_usuario="", selecionado_livro=""):
+def _formulario(erros=None, selecionado_usuario="", selecionado_livro="", termo=""):
     resposta = render_template(
         "emprestimos/formulario.html",
         aba="cadastrar",
         erros=erros or {},
         usuarios=usuarios_repository.opcoes_para_emprestimo(),
-        livros=livros_repository.opcoes_para_emprestimo(),
+        livros=livros_repository.opcoes_para_emprestimo(termo),
+        termo=termo,
         prazo_dias=repository.PRAZO_PADRAO_DIAS,
         selecionado_usuario=selecionado_usuario,
         selecionado_livro=selecionado_livro,
@@ -47,10 +48,12 @@ def consultar():
 def cadastrar():
     if request.method == "GET":
         id_livro = request.args.get("id_livro", "")
-        return _formulario(selecionado_livro=id_livro)
+        termo = request.args.get("q", "").strip()
+        return _formulario(selecionado_livro=id_livro, termo=termo)
 
     id_usuario = request.form.get("id_usuario", type=int)
     id_livro = request.form.get("id_livro", type=int)
+    termo = request.form.get("q", "").strip()
 
     erros = {}
     if not id_usuario:
@@ -58,16 +61,16 @@ def cadastrar():
     if not id_livro:
         erros["id_livro"] = "Selecione o livro."
     if erros:
-        return _formulario(erros, str(id_usuario or ""), str(id_livro or ""))
+        return _formulario(erros, str(id_usuario or ""), str(id_livro or ""), termo)
 
     try:
         _, prevista = repository.criar(id_usuario, id_livro)
     except repository.LivroIndisponivel:
         erros["id_livro"] = "Este livro não tem exemplares disponíveis no momento."
-        return _formulario(erros, str(id_usuario), str(id_livro))
+        return _formulario(erros, str(id_usuario), str(id_livro), termo)
     except repository.UsuarioComPendencia:
         erros["id_usuario"] = "Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro."
-        return _formulario(erros, str(id_usuario), str(id_livro))
+        return _formulario(erros, str(id_usuario), str(id_livro), termo)
 
     flash(f"Empréstimo registrado. Devolução prevista para {prevista.strftime('%d/%m/%Y')}.", "success")
     return redirect(url_for("emprestimos.cadastrar"))

@@ -77,9 +77,15 @@ def total_exemplares():
     return get_db().execute("SELECT COALESCE(SUM(quantidade_total), 0) FROM livro").fetchone()[0]
 
 
-def opcoes_para_emprestimo():
-    """Todos os livros, com disponibilidade, para o formulário de empréstimo."""
-    return get_db().execute(f"{_SELECT_LIVROS} ORDER BY normalizar(l.titulo)").fetchall()
+def opcoes_para_emprestimo(termo=""):
+    """Livros com disponibilidade, para os formulários de empréstimo e reserva.
+
+    Aceita um termo opcional (título, autor ou ISBN) para filtrar a lista.
+    """
+    filtro, parametros = _filtro_busca(termo)
+    return get_db().execute(
+        f"{_SELECT_LIVROS} {filtro} ORDER BY normalizar(l.titulo)", parametros
+    ).fetchall()
 
 
 def contar_emprestimos(id_livro):
