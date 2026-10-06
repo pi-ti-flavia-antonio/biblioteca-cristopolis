@@ -376,3 +376,18 @@ def test_formulario_tem_link_para_cadastrar_usuario_faltante(client):
     assert 'Nenhum usuário encontrado para "danielle".' in pagina
     assert "O usuário que você procura não está cadastrado?" in pagina
     assert 'href="/usuarios/novo?voltar=emprestimo"' in pagina
+
+
+def test_menu_lateral_abre_direto_em_realizar_emprestimo(client):
+    pagina = html(client.get("/"))
+
+    assert 'href="/emprestimos/novo" class="sidebar__link">Empréstimos' in pagina
+
+
+def test_abas_seguem_a_ordem_realizar_historico_reservas(client):
+    pagina = html(client.get("/emprestimos/novo"))
+
+    realizar = pagina.index(">Realizar empréstimo</a>")
+    historico = pagina.index(">Histórico de empréstimos</a>")
+    reservas = pagina.index(">Reservas</a>")
+    assert realizar < historico < reservas
