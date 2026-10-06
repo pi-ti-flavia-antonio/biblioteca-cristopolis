@@ -54,7 +54,7 @@
 
             <div class="field">
                 <label for="isbn">ISBN</label>
-                <div class="field__isbn-row">
+                <div class="field__inline">
                     <input id="isbn" name="isbn" type="text" value="{{ valores.isbn }}" maxlength="17"
                            class="input{% if erros.isbn %} input--error{% endif %}">
                     <button type="submit" name="acao" value="buscar_isbn" class="button button--secondary" formnovalidate>

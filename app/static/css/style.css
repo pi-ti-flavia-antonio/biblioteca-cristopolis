@@ -460,13 +460,14 @@ button:focus-visible,
     color: var(--color-text-muted);
 }
 
-.field__isbn-row {
+.field__inline {
     display: flex;
     gap: 0.5rem;
 }
 
-.field__isbn-row .input {
+.field__inline .input {
     flex: 1;
+    min-width: 0;
 }
 
 .field__error {
@@ -478,6 +479,12 @@ button:focus-visible,
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.radio-list--scroll {
+    max-height: 12.5rem;
+    overflow-y: auto;
+    padding-right: 0.35rem;
 }
 
 .radio-list__item {

@@ -366,4 +366,4 @@ def test_cadastro_vindo_do_emprestimo_redireciona_com_livro_selecionado(client, 
 
     id_livro = consulta("SELECT id_livro FROM livro")[0]["id_livro"]
     pagina = html(client.get(resposta.headers["Location"]))
-    assert f'value="{id_livro}" selected' in pagina
+    assert f'value="{id_livro}" checked' in pagina

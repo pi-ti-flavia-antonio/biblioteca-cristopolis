@@ -14,15 +14,16 @@ def test_historico_vazio_mostra_mensagem(client):
     assert "Nenhum empréstimo registrado ainda." in html(resposta)
 
 
-def test_formulario_lista_usuarios_e_livros(client, criar_usuario, criar_livro):
+def test_formulario_lista_usuarios_e_livros_ao_clicar_em_buscar(post, criar_usuario, criar_livro):
     criar_usuario("Maria Oliveira", cpf="12345678909")
     criar_livro("Dom Casmurro", quantidade=2)
 
-    pagina = html(client.get("/emprestimos/novo"))
+    usuarios = html(post("/emprestimos/novo", {"acao": "buscar_usuario"}))
+    livros = html(post("/emprestimos/novo", {"acao": "buscar_livro"}))
 
-    assert "Maria Oliveira" in pagina
-    assert "Dom Casmurro" in pagina
-    assert "2 disponíveis" in pagina
+    assert "Maria Oliveira" in usuarios
+    assert "Dom Casmurro" in livros
+    assert "2 disponíveis" in livros
 
 
 def test_realizar_emprestimo_valido(client, post, criar_usuario, criar_livro):
@@ -91,11 +92,11 @@ def test_usuario_pode_pegar_outro_livro_apos_devolucao(client, post, criar_usuar
     assert resposta.status_code == 302
 
 
-def test_livro_esgotado_aparece_desabilitado_no_formulario(client, criar_livro, registrar_emprestimo):
+def test_livro_esgotado_aparece_desabilitado_no_formulario(post, criar_livro, registrar_emprestimo):
     id_livro = criar_livro("Dom Casmurro", quantidade=1)
     registrar_emprestimo(id_livro)
 
-    pagina = html(client.get("/emprestimos/novo"))
+    pagina = html(post("/emprestimos/novo", {"acao": "buscar_livro"}))
 
     assert f'value="{id_livro}" disabled' in pagina
 
@@ -209,7 +210,7 @@ def test_id_livro_na_query_pre_seleciona_o_livro(client, criar_livro):
 
     pagina = html(client.get("/emprestimos/novo", query_string={"id_livro": id_livro}))
 
-    assert f'value="{id_livro}" selected' in pagina
+    assert f'value="{id_livro}" checked' in pagina
 
 
 def test_busca_de_livro_filtra_por_titulo_autor_ou_isbn(client, criar_livro):
@@ -248,22 +249,88 @@ def test_busca_de_livro_preserva_termo_apos_erro_de_validacao(post, criar_livro)
     assert "Dom Casmurro" in pagina
 
 
-def test_busca_de_livro_mostra_opcoes_clicaveis_em_vez_de_lista_suspensa(client, criar_livro):
+def test_busca_de_livro_mostra_caixa_com_rolagem_e_opcoes_clicaveis(client, criar_livro):
     id_livro = criar_livro("Dom Casmurro", quantidade=1)
 
     pagina = html(client.get("/emprestimos/novo", query_string={"q": "cas"}))
 
     assert f'<input type="radio" name="id_livro" value="{id_livro}"' in pagina
-    assert '<select id="id_livro"' not in pagina
+    assert "radio-list--scroll" in pagina
 
 
-def test_sem_busca_mostra_lista_suspensa_normal(client, criar_livro):
+def test_antes_de_buscar_nao_lista_nada_e_orienta_a_pesquisar(client, criar_livro, criar_usuario):
     criar_livro("Dom Casmurro", quantidade=1)
+    criar_usuario("Maria Oliveira", cpf="12345678909")
 
     pagina = html(client.get("/emprestimos/novo"))
 
-    assert '<select id="id_livro"' in pagina
-    assert 'type="radio" name="id_livro"' not in pagina
+    assert 'type="radio"' not in pagina
+    assert "clique em Buscar para escolher o usuário" in pagina
+    assert "clique em Buscar para escolher o livro" in pagina
+
+
+def test_buscar_sem_digitar_nada_lista_todas_as_opcoes(post, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)
+    criar_livro("1984", quantidade=1)
+
+    pagina = html(post("/emprestimos/novo", {"acao": "buscar_livro", "q": ""}))
+
+    assert "Dom Casmurro" in pagina
+    assert "1984" in pagina
+
+
+def test_buscar_nao_registra_emprestimo(post, consulta, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+
+    resposta = post("/emprestimos/novo", {"acao": "buscar_livro", "id_usuario": id_usuario, "id_livro": id_livro})
+
+    assert resposta.status_code == 200
+    assert consulta("SELECT id_emprestimo FROM emprestimo") == []
+
+
+def test_buscar_livro_mantem_o_usuario_ja_escolhido(post, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    criar_livro("Dom Casmurro", quantidade=1)
+
+    pagina = html(post("/emprestimos/novo", {
+        "acao": "buscar_livro", "q": "dom", "id_usuario": id_usuario,
+        "q_usuario": "maria", "ver_usuarios": "1",
+    }))
+
+    assert f'name="id_usuario" value="{id_usuario}" checked' in pagina
+    assert "Dom Casmurro" in pagina
+
+
+def test_enter_no_campo_de_busca_so_atualiza_e_nao_registra(post, consulta, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+
+    resposta = post("/emprestimos/novo", {
+        "acao": "atualizar", "q": "dom", "id_usuario": id_usuario, "id_livro": id_livro,
+    })
+
+    assert resposta.status_code == 200
+    assert consulta("SELECT id_emprestimo FROM emprestimo") == []
+
+
+def test_limpar_busca_de_livro_zera_o_termo_e_mantem_a_lista(post, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)
+    criar_livro("1984", quantidade=1)
+
+    pagina = html(post("/emprestimos/novo", {"acao": "limpar_livro", "q": "dom", "ver_livros": "1"}))
+
+    assert 'name="q" value=""' in pagina
+    assert "1984" in pagina
+
+
+def test_erro_de_validacao_mantem_as_listas_abertas(post, criar_livro):
+    criar_livro("Dom Casmurro", quantidade=1)
+
+    pagina = html(post("/emprestimos/novo", {"id_usuario": "", "id_livro": "", "q": "dom", "ver_livros": "1"}))
+
+    assert "Selecione o livro." in pagina
+    assert "Dom Casmurro" in pagina
 
 
 def test_busca_de_usuario_encontra_nome_com_ou_sem_acentuacao(client, criar_usuario):
