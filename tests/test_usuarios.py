@@ -218,3 +218,30 @@ def test_menu_destaca_a_secao_atual(client):
 
     assert 'class="sidebar__link is-active" aria-current="page">Usuários' in pagina
     assert 'class="sidebar__link">Livros' in pagina
+
+
+def test_cadastro_vindo_do_emprestimo_mostra_aviso_e_cancelar_volta(client):
+    pagina = html(client.get("/usuarios/novo", query_string={"voltar": "emprestimo"}))
+
+    assert "para poder registrar o empréstimo em seguida" in pagina
+    assert 'name="voltar" value="emprestimo"' in pagina
+    assert 'href="/emprestimos/novo"' in pagina
+
+
+def test_cadastro_normal_nao_mostra_aviso_de_emprestimo(client):
+    pagina = html(client.get("/usuarios/novo"))
+
+    assert "para poder registrar o empréstimo em seguida" not in pagina
+    assert 'href="/usuarios"' in pagina
+
+
+def test_cadastro_vindo_do_emprestimo_redireciona_com_usuario_selecionado(client, post, consulta):
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "voltar": "emprestimo"})
+
+    assert resposta.status_code == 302
+    assert resposta.headers["Location"].startswith("/emprestimos/novo?id_usuario=")
+
+    id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
+    pagina = html(client.get(resposta.headers["Location"]))
+    assert f'name="id_usuario" value="{id_usuario}" checked' in pagina
+    assert "Maria Oliveira" in pagina

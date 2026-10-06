@@ -48,8 +48,15 @@
         {% endif %}
     </div>
 
+    {% if voltar == 'emprestimo' %}
+    <div class="alert alert--success" role="status">
+        Cadastre o usuário abaixo (nome, CPF e telefone) para poder registrar o empréstimo em seguida.
+    </div>
+    {% endif %}
+
     <form method="post" class="form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="voltar" value="{{ voltar }}">
 
         <div class="form__grid">
             {{ campo("nome", "Nome completo", obrigatorio=True, tamanho_max=150, foco=not usuario_id) }}
@@ -62,7 +69,7 @@
 
         <div class="form__actions">
             <button type="submit" class="button button--primary">Salvar</button>
-            <a href="{{ url_for('usuarios.consultar') }}" class="button button--secondary">Cancelar</a>
+            <a href="{{ url_for('emprestimos.cadastrar') if voltar == 'emprestimo' else url_for('usuarios.consultar') }}" class="button button--secondary">Cancelar</a>
             {% if usuario_id %}
             <a href="{{ url_for('usuarios.excluir', usuario_id=usuario_id) }}" class="button button--danger form__actions-end">Excluir usuário</a>
             {% endif %}

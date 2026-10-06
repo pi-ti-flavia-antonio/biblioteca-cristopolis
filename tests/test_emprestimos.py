@@ -368,3 +368,11 @@ def test_busca_de_usuario_mostra_opcoes_clicaveis_em_vez_de_lista_suspensa(clien
 
     assert f'<input type="radio" name="id_usuario" value="{id_usuario}"' in pagina
     assert '<select id="id_usuario"' not in pagina
+
+
+def test_formulario_tem_link_para_cadastrar_usuario_faltante(client):
+    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "danielle"}))
+
+    assert 'Nenhum usuário encontrado para "danielle".' in pagina
+    assert "O usuário que você procura não está cadastrado?" in pagina
+    assert 'href="/usuarios/novo?voltar=emprestimo"' in pagina

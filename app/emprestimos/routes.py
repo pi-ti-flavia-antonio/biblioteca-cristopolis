@@ -56,12 +56,19 @@ def consultar():
 def cadastrar():
     if request.method == "GET":
         id_livro = request.args.get("id_livro", type=int)
+        id_usuario = request.args.get("id_usuario", type=int)
         termo = request.args.get("q", "").strip()
         termo_usuario = request.args.get("q_usuario", "").strip()
         livro = livros_repository.obter(id_livro) if id_livro and not termo else None
         if livro:
             termo = livro["titulo"]
-        return _formulario(selecionado_livro=str(id_livro or ""), termo=termo, termo_usuario=termo_usuario)
+        usuario = usuarios_repository.obter(id_usuario) if id_usuario and not termo_usuario else None
+        if usuario:
+            termo_usuario = usuario["nome"]
+        return _formulario(
+            selecionado_usuario=str(id_usuario or ""), selecionado_livro=str(id_livro or ""),
+            termo=termo, termo_usuario=termo_usuario,
+        )
 
     id_usuario = request.form.get("id_usuario", type=int)
     id_livro = request.form.get("id_livro", type=int)

@@ -41,7 +41,7 @@
                     {% elif termo_usuario %}
                     <p class="field__hint">Nenhum usuário encontrado para "{{ termo_usuario }}".</p>
                     {% else %}
-                    <p class="field__hint">Nenhum usuário cadastrado. <a class="link-action" href="{{ url_for('usuarios.cadastrar') }}">Cadastrar usuário</a></p>
+                    <p class="field__hint">Nenhum usuário cadastrado ainda.</p>
                     {% endif %}
                 {% elif not erros.id_usuario %}
                 <p class="field__hint">Pesquise por nome ou CPF e clique em Buscar para escolher o usuário.</p>
@@ -49,6 +49,10 @@
                 {% if erros.id_usuario %}
                 <p class="field__error">{{ erros.id_usuario }}</p>
                 {% endif %}
+                <p class="field__hint">
+                    O usuário que você procura não está cadastrado?
+                    <a class="link-action" href="{{ url_for('usuarios.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
+                </p>
             </div>
 
             <div class="field field--wide">

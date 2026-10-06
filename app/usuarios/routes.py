@@ -20,7 +20,7 @@ def _checar_regras_do_banco(dados, erros, usuario_atual=None):
             erros["cpf"] = f"Já existe um usuário cadastrado com este CPF: {existente['nome']}."
 
 
-def _formulario(valores, erros, aba=None, usuario_id=None):
+def _formulario(valores, erros, aba=None, usuario_id=None, voltar=""):
     resposta = render_template(
         "usuarios/formulario.html",
         aba=aba,
@@ -28,6 +28,7 @@ def _formulario(valores, erros, aba=None, usuario_id=None):
         valores=valores,
         erros=erros,
         tipos_usuario=validacao.TIPOS_USUARIO,
+        voltar=voltar,
     )
     return resposta, (400 if erros else 200)
 
@@ -62,16 +63,21 @@ def consultar():
 @usuarios_bp.route("/novo", methods=["GET", "POST"])
 def cadastrar():
     if request.method == "GET":
-        return _formulario(validacao.valores_iniciais(), {}, aba="cadastrar")
+        voltar = request.args.get("voltar", "")
+        return _formulario(validacao.valores_iniciais(), {}, aba="cadastrar", voltar=voltar)
 
+    voltar = request.form.get("voltar", "")
     valores = validacao.valores_do_formulario(request.form)
     dados, erros = validacao.validar_usuario(valores)
     _checar_regras_do_banco(dados, erros)
     if erros:
-        return _formulario(valores, erros, aba="cadastrar")
+        return _formulario(valores, erros, aba="cadastrar", voltar=voltar)
 
-    repository.criar(dados)
+    id_usuario = repository.criar(dados)
     flash(f"Usuário cadastrado: {dados['nome']}.", "success")
+
+    if voltar == "emprestimo":
+        return redirect(url_for("emprestimos.cadastrar", id_usuario=id_usuario))
     return redirect(url_for("usuarios.cadastrar"))
 
 
