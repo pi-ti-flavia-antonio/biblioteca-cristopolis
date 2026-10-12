@@ -10,7 +10,7 @@
 <section class="panel" aria-labelledby="periodo-heading">
     <h2 id="periodo-heading" class="visually-hidden">Empréstimos por período</h2>
 
-    <form class="search" method="get" action="{{ url_for('relatorios.periodo') }}">
+    <form id="form-periodo" class="search" method="get" action="{{ url_for('relatorios.periodo') }}">
         <div class="field">
             <label for="inicio">De</label>
             <input id="inicio" class="input{% if erros.data_inicio %} input--error{% endif %}" type="date" name="inicio" value="{{ data_inicio }}" max="{{ hoje }}">
@@ -22,19 +22,28 @@
             {% if erros.data_fim %}<p class="field__error">{{ erros.data_fim }}</p>{% endif %}
         </div>
         <button class="button button--primary" type="submit">Gerar relatório</button>
-        <a class="button button--secondary{% if e_periodo_padrao %} button--active{% endif %}" href="{{ url_for('relatorios.periodo') }}" aria-pressed="{{ 'true' if e_periodo_padrao else 'false' }}">Últimos 30 dias</a>
-        {% if not erros %}
-        <a class="button button--secondary" href="{{ url_for('relatorios.periodo_pdf', inicio=data_inicio, fim=data_fim) }}">Baixar PDF</a>
-        {% endif %}
     </form>
 
-    {% if not erros %}
-    <p class="panel__text">
-        <strong>{{ total }}</strong> {{ "empréstimo registrado" if total == 1 else "empréstimos registrados" }}
-        entre {{ data_inicio | data_br }} e {{ data_fim | data_br }}.
-    </p>
+    <div id="aviso-gerando" class="alert alert--ocupado alert--acao" role="status" aria-live="polite" hidden>
+        <span><span class="spinner" aria-hidden="true"></span>Gerando relatório, aguarde...</span>
+    </div>
+
+    {% if pronto %}
+    <div class="alert alert--success alert--acao" role="status">
+        <span>
+            <strong>Relatório pronto.</strong>
+            {{ total }} {{ "empréstimo registrado" if total == 1 else "empréstimos registrados" }}
+            entre {{ data_inicio | data_br }} e {{ data_fim | data_br }}.
+        </span>
+        <a class="button button--primary button--small" href="{{ url_for('relatorios.periodo_pdf', inicio=data_inicio, fim=data_fim) }}">Baixar PDF</a>
+    </div>
+    {% elif erros %}
+    <p class="panel__text">Corrija o período acima para gerar o relatório.</p>
+    {% else %}
+    <p class="panel__text">Escolha o período, de até 1 ano, e clique em Gerar relatório.</p>
     {% endif %}
 
+    {% if pronto %}
     <div class="table-wrapper">
         <table class="table">
             <thead>
@@ -66,20 +75,15 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" class="table__empty">
-                        {% if erros %}
-                        Corrija o período acima para gerar o relatório.
-                        {% else %}
-                        Nenhum empréstimo registrado nesse período.
-                        {% endif %}
-                    </td>
+                    <td colspan="4" class="table__empty">Nenhum empréstimo registrado nesse período.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% endif %}
 
-    {% if total > 0 %}
+    {% if pronto and total > 0 %}
     <div class="pagination">
         <span>Mostrando {{ inicio }} a {{ fim }} de {{ total }}</span>
         {% if total_paginas > 1 %}
@@ -95,4 +99,20 @@
     </div>
     {% endif %}
 </section>
+
+<script>
+(function () {
+    var form = document.getElementById("form-periodo");
+    var aviso = document.getElementById("aviso-gerando");
+    if (!form || !aviso) return;
+    form.addEventListener("submit", function (evento) {
+        if (form.dataset.enviando || !form.elements["inicio"].value || !form.elements["fim"].value) return;
+        evento.preventDefault();
+        form.dataset.enviando = "1";
+        aviso.hidden = false;
+        form.querySelector("button[type=submit]").disabled = true;
+        setTimeout(function () { form.submit(); }, 700);
+    });
+})();
+</script>
 {% endblock %}
