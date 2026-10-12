@@ -223,3 +223,19 @@ def test_baixar_pdf_sem_periodo_volta_para_o_relatorio(client):
 
     assert resposta.status_code == 302
     assert resposta.headers["Location"].startswith("/relatorios")
+
+
+def test_baixar_pdf_funciona_mesmo_sem_registros_no_periodo(client):
+    resposta = client.get("/relatorios/periodo.pdf", query_string={"inicio": "2020-01-01", "fim": "2020-01-31"})
+
+    assert resposta.status_code == 200
+    assert resposta.mimetype == "application/pdf"
+    assert resposta.data[:4] == b"%PDF"
+
+
+def test_botao_de_baixar_aparece_mesmo_sem_registros_no_periodo(client):
+    pagina = html(client.get("/relatorios", query_string={"inicio": "2020-01-01", "fim": "2020-01-31"}))
+
+    assert "Relatório pronto." in pagina
+    assert ">Baixar PDF<" in pagina
+    assert "Nenhum empréstimo registrado nesse período." in pagina
