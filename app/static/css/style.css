@@ -668,29 +668,3 @@ button:focus-visible,
         grid-template-columns: 1fr;
     }
 }
-
-@media (max-width: 700px) {
-    .app {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
-        flex-direction: row;
-        align-items: center;
-        overflow-x: auto;
-    }
-
-    .sidebar__nav {
-        flex-direction: row;
-    }
-
-    .stats,
-    .form__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form__actions {
-        flex-wrap: wrap;
-    }
-}
