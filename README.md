@@ -11,7 +11,7 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 - **Empréstimos:** o usuário e o livro são escolhidos por busca, com lista de opções. O prazo padrão é de 30 dias, e o sistema bloqueia um novo empréstimo para quem ainda está com um livro. Se o usuário ou o livro não existir, há um atalho para cadastrá-lo e voltar ao empréstimo.
 - **Reservas:** reserva de livros sem exemplar disponível, com fila por ordem de chegada. Quando um exemplar volta, só a reserva mais antiga é sinalizada para retirada.
 - **Devoluções:** registro da devolução, com atualização automática do estoque e aviso de atraso.
-- **Relatórios:** empréstimos por período (de 30 dias até 1 ano) com exportação em PDF, e lista de empréstimos em atraso.
+- **Relatórios:** empréstimos por período (de até 1 ano), com aviso de geração e exportação em PDF, e lista de empréstimos em atraso.
 - **Painel inicial:** totais do acervo, empréstimos ativos, usuários e empréstimos recentes.
 
 Ainda não implementados: backup do banco para a nuvem e login de funcionários.
@@ -19,7 +19,7 @@ Ainda não implementados: backup do banco para a nuvem e login de funcionários.
 ## Tecnologias
 
 - **Backend:** Python com Flask
-- **Interface:** HTML gerado com templates Jinja e CSS responsivo, sem JavaScript próprio
+- **Interface:** HTML gerado com templates Jinja e CSS responsivo. O único JavaScript é um pequeno trecho na tela de relatórios, que mostra o aviso de geração do PDF
 - **Banco de dados:** SQLite, salvo localmente em `data/biblioteca.db`
 - **Janela do sistema:** pywebview, que exibe o sistema como programa, sem barra de endereço
 - **Bibliotecas auxiliares:** requests (busca por ISBN) e reportlab (geração do PDF)
