@@ -24,6 +24,16 @@ Ainda não implementados: backup do banco para a nuvem e login de funcionários.
 - **Janela do sistema:** pywebview, que exibe o sistema como programa, sem barra de endereço
 - **Bibliotecas auxiliares:** requests (busca por ISBN) e reportlab (geração do PDF)
 
+## Principais decisões de desenvolvimento
+
+- **Flask, SQLite e pywebview:** poucos recursos, nenhum servidor para instalar e funcionamento sem internet, adequado ao único computador da biblioteca e a uma servidora que opera o sistema sozinha.
+- **Uso em computador:** o sistema é pensado para o computador da biblioteca, não para celulares ou tablets. O CSS responsivo ajusta o layout a monitores, notebooks e à janela redimensionada (mínimo de 900 x 600).
+- **Regras de negócio no servidor:** disponibilidade, atraso e bloqueio de um segundo empréstimo são calculados em um só lugar. Uma versão com script no navegador repetia essas regras e foi removida.
+- **Busca de dados por ISBN com APIs REST, opcional:** o protocolo Z39.50 exige uma biblioteca em C e depende de servidores públicos instáveis. Sem internet, o cadastro continua manual.
+- **Busca com lista de opções no empréstimo:** a lista suspensa com todos os usuários e livros ficava difícil de usar com um acervo grande.
+- **Reservas em fila por ordem de chegada:** quando um exemplar volta, só a reserva mais antiga é sinalizada.
+- **Acessibilidade:** HTML semântico (`nav`, `header`, `main`, um `h1` por página), campos com rótulo, avisos com `role`, item atual do menu marcado e link para pular ao conteúdo.
+
 ## Como instalar e usar
 
 Desenvolvido e testado com Python 3.12 ([python.org](https://www.python.org/downloads/)).

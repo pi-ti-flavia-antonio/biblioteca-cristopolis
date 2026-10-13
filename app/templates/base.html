@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <div class="app">
         <nav class="sidebar" aria-label="Navegação principal">
             <div class="sidebar__brand">
@@ -37,7 +38,7 @@
                 {% block topbar_extra %}{% endblock %}
             </header>
 
-            <main class="content">
+            <main class="content" id="conteudo" tabindex="-1">
                 {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
                 <div class="alert alert--{{ categoria }}" role="{{ 'alert' if categoria == 'error' else 'status' }}">{{ mensagem }}</div>
                 {% endfor %}

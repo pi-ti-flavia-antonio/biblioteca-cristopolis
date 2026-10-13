@@ -49,6 +49,23 @@ button:focus-visible,
     outline-offset: 2px;
 }
 
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius);
+    background-color: var(--color-primary);
+    color: #fff;
+    font-weight: 500;
+}
+
+.skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;
