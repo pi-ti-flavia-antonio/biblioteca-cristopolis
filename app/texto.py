@@ -44,6 +44,17 @@ def formatar_cpf(digitos):
     return f"{digitos[0:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:11]}"
 
 
+def mascarar_cpf(digitos):
+    """Oculta os dígitos do CPF, exibindo somente os dois últimos."""
+    if not digitos:
+        return ""
+    digitos = limpar_digitos(digitos)
+    if len(digitos) != 11:
+        return "***"
+    return f"***.***.***-{digitos[-2:]}"
+
+
+
 def formatar_data(iso):
     """Converte 'aaaa-mm-dd' em 'dd/mm/aaaa' para exibição."""
     if not iso:

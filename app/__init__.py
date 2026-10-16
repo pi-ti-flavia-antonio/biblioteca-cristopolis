@@ -5,7 +5,7 @@ from pathlib import Path
 from flask import Flask, render_template
 
 from . import database, security
-from .texto import formatar_cpf, formatar_data, formatar_telefone
+from .texto import formatar_cpf, formatar_data, formatar_telefone, mascarar_cpf
 
 MENSAGENS_ERRO = {
     400: "Não foi possível concluir a ação. Volte à página anterior e tente de novo.",
@@ -28,6 +28,7 @@ def create_app(config=None):
     app.jinja_env.filters["cpf"] = formatar_cpf
     app.jinja_env.filters["telefone"] = formatar_telefone
     app.jinja_env.filters["data_br"] = formatar_data
+    app.jinja_env.filters["cpf_mascarado"] = mascarar_cpf
 
     from .devolucoes import devolucoes_bp
     from .emprestimos import emprestimos_bp

@@ -37,7 +37,7 @@
                         <span class="table__title">{{ usuario.nome }}</span>
                         {% if usuario.email %}<span class="table__subtitle">{{ usuario.email }}</span>{% endif %}
                     </td>
-                    <td class="table__nowrap">{{ usuario.cpf | cpf }}</td>
+                    <td class="table__nowrap">{{ usuario.cpf | cpf_mascarado }}</td>
                     <td class="table__nowrap">{{ usuario.telefone | telefone }}</td>
                     <td>{{ usuario.tipo_usuario or "-" }}</td>
                     <td class="table__actions">

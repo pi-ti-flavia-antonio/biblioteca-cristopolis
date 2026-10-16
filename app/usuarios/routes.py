@@ -17,7 +17,7 @@ def _checar_regras_do_banco(dados, erros, usuario_atual=None):
             and existente["id_usuario"] == usuario_atual["id_usuario"]
         )
         if existente and not mesmo_usuario:
-            erros["cpf"] = f"Já existe um usuário cadastrado com este CPF: {existente['nome']}."
+            erros["cpf"] = f"Já existe um usuário cadastrado com este CPF:."
 
 
 def _formulario(valores, erros, aba=None, usuario_id=None, voltar=""):
