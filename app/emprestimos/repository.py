@@ -7,7 +7,7 @@ POR_PAGINA = 25
 PRAZO_PADRAO_DIAS = 30
 
 _SELECT_EMPRESTIMOS = """
-    SELECT emp.id_emprestimo, emp.data_emprestimo, emp.data_devolucao_prevista,
+    SELECT emp.id_emprestimo, emp.id_livro, emp.data_emprestimo, emp.data_devolucao_prevista,
            emp.status,
            l.titulo AS livro_titulo, l.autor AS livro_autor,
            u.nome AS usuario_nome, u.telefone AS usuario_telefone,
@@ -140,6 +140,7 @@ def registrar_devolucao(id_emprestimo):
         )
 
     return {
+        "id_livro": emprestimo["id_livro"],
         "livro_titulo": emprestimo["livro_titulo"],
         "usuario_nome": emprestimo["usuario_nome"],
         "dias_atraso": dias_atraso,

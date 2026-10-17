@@ -3,6 +3,8 @@ import math
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from ..emprestimos import repository as emprestimos
+from ..emprestimos import reservas_repository
+from ..texto import formatar_telefone
 
 devolucoes_bp = Blueprint("devolucoes", __name__, url_prefix="/devolucoes")
 
@@ -43,4 +45,14 @@ def registrar(id_emprestimo):
         mensagem = f"Devolução registrada: {resultado['livro_titulo']} ({resultado['usuario_nome']}). Devolvido no prazo."
 
     flash(mensagem, "success")
+
+    prontas = [r for r in reservas_repository.listar_prontas() if r["id_livro"] == resultado["id_livro"]]
+    if prontas:
+        reserva = prontas[0]
+        telefone = formatar_telefone(reserva["usuario_telefone"])
+        flash(
+            f"O livro {reserva['livro_titulo']} tinha reserva e já está disponível. "
+            f"Avise {reserva['usuario_nome']} pelo WhatsApp: {telefone}. Os detalhes estão na aba Reservas.",
+            "info",
+        )
     return redirect(url_for("devolucoes.consultar"))

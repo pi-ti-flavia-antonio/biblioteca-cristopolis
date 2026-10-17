@@ -1,6 +1,7 @@
 from datetime import date
 
 from ..database import get_db
+from ..texto import link_whatsapp
 from .repository import LivroIndisponivel
 from .repository import criar as criar_emprestimo
 from .repository import livro_disponivel
@@ -8,7 +9,7 @@ from .repository import livro_disponivel
 _SELECT_RESERVAS = """
     SELECT r.id_reserva, r.data_reserva, r.status, r.id_usuario, r.id_livro,
            l.titulo AS livro_titulo, l.autor AS livro_autor,
-           u.nome AS usuario_nome
+           u.nome AS usuario_nome, u.telefone AS usuario_telefone
       FROM reserva r
       JOIN livro l ON l.id_livro = r.id_livro
       JOIN usuario u ON u.id_usuario = r.id_usuario
@@ -40,7 +41,15 @@ def _marcar_disponiveis(linhas):
         pronta = vagas_por_livro[id_livro] > 0
         if pronta:
             vagas_por_livro[id_livro] -= 1
-        resultado.append({**dict(linha), "disponivel_para_retirada": pronta})
+        item = {**dict(linha), "disponivel_para_retirada": pronta, "whatsapp_url": ""}
+        if pronta:
+            primeiro_nome = linha["usuario_nome"].split()[0]
+            item["whatsapp_url"] = link_whatsapp(
+                linha["usuario_telefone"],
+                f'Olá, {primeiro_nome}! O livro "{linha["livro_titulo"]}" que você reservou na '
+                "Biblioteca Municipal de Cristópolis já está disponível para retirada.",
+            )
+        resultado.append(item)
     return resultado
 
 
@@ -49,6 +58,15 @@ def listar_ativas():
         f"{_SELECT_RESERVAS} WHERE r.status = 'ativa' ORDER BY r.data_reserva, r.id_reserva"
     ).fetchall()
     return _marcar_disponiveis(linhas)
+
+
+def listar_prontas():
+    """Reservas ativas cujo livro já voltou e está esperando a pessoa vir buscar."""
+    return [r for r in listar_ativas() if r["disponivel_para_retirada"]]
+
+
+def contar_prontas():
+    return len(listar_prontas())
 
 
 def contar_ativas():

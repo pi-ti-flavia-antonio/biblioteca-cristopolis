@@ -1,6 +1,7 @@
 import re
 import unicodedata
 from datetime import date
+from urllib.parse import quote
 
 
 def normalizar(texto):
@@ -70,3 +71,11 @@ def formatar_telefone(digitos):
     if len(digitos) == 10:
         return f"({digitos[0:2]}) {digitos[2:6]}-{digitos[6:10]}"
     return digitos
+
+
+def link_whatsapp(telefone, mensagem):
+    """Link para abrir uma conversa no WhatsApp com a mensagem já escrita, ou '' se o telefone não for válido."""
+    digitos = limpar_digitos(telefone)
+    if len(digitos) not in (10, 11):
+        return ""
+    return f"https://wa.me/55{digitos}?text={quote(mensagem)}"

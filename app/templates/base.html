@@ -1,6 +1,6 @@
-{% macro nav_link(secao, url, rotulo) -%}
+{% macro nav_link(secao, url, rotulo, contagem=0) -%}
     {% set ativo = request.blueprint == secao %}
-    <li><a href="{{ url }}" class="sidebar__link{% if ativo %} is-active{% endif %}"{% if ativo %} aria-current="page"{% endif %}>{{ rotulo }}</a></li>
+    <li><a href="{{ url }}" class="sidebar__link{% if ativo %} is-active{% endif %}"{% if ativo %} aria-current="page"{% endif %}>{{ rotulo }}{% if contagem %} <span class="contagem" aria-label="{{ contagem }} {{ 'livro disponível' if contagem == 1 else 'livros disponíveis' }} para retirada">{{ contagem }}</span>{% endif %}</a></li>
 {%- endmacro %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -24,7 +24,7 @@
                 {{ nav_link('main', url_for('main.index'), 'Início') }}
                 {{ nav_link('livros', url_for('livros.consultar'), 'Livros') }}
                 {{ nav_link('usuarios', url_for('usuarios.consultar'), 'Usuários') }}
-                {{ nav_link('emprestimos', url_for('emprestimos.cadastrar'), 'Empréstimos') }}
+                {{ nav_link('emprestimos', url_for('emprestimos.cadastrar'), 'Empréstimos', reservas_prontas()) }}
                 {{ nav_link('devolucoes', url_for('devolucoes.consultar'), 'Devoluções') }}
                 {{ nav_link('relatorios', url_for('relatorios.periodo'), 'Relatórios') }}
             </ul>

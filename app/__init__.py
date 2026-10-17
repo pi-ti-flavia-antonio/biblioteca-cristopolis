@@ -30,6 +30,7 @@ def create_app(config=None):
     app.jinja_env.filters["data_br"] = formatar_data
     app.jinja_env.filters["cpf_mascarado"] = mascarar_cpf
 
+    from .emprestimos import reservas_repository
     from .devolucoes import devolucoes_bp
     from .emprestimos import emprestimos_bp
     from .livros import livros_bp
@@ -37,6 +38,7 @@ def create_app(config=None):
     from .routes import main_bp
     from .usuarios import usuarios_bp
 
+    app.context_processor(lambda: {"reservas_prontas": reservas_repository.contar_prontas})
     app.register_blueprint(main_bp)
     app.register_blueprint(livros_bp)
     app.register_blueprint(usuarios_bp)

@@ -8,6 +8,26 @@
 {% block conteudo %}
 {% include "emprestimos/_abas.html" %}
 
+{% if prontas %}
+<section class="aviso-reservas" role="status" aria-labelledby="aviso-reservas-titulo">
+    <h2 id="aviso-reservas-titulo">{{ prontas | length }} {{ "livro disponível" if prontas | length == 1 else "livros disponíveis" }} para retirada</h2>
+    <p>Avise as pessoas abaixo que o livro que reservaram já pode ser retirado.</p>
+    <ul class="aviso-reservas__lista">
+        {% for reserva in prontas %}
+        <li>
+            <span>
+                <strong>{{ reserva.usuario_nome }}</strong> reservou <em>{{ reserva.livro_titulo }}</em>
+                <span class="table__subtitle">Telefone {{ reserva.usuario_telefone | telefone }}</span>
+            </span>
+            {% if reserva.whatsapp_url %}
+            <a class="button button--secondary button--small" href="{{ reserva.whatsapp_url }}" target="_blank" rel="noopener noreferrer">Avisar por WhatsApp</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
 <section class="panel" aria-labelledby="reservar-heading">
     <h2 id="reservar-heading">Reservar livro</h2>
 
@@ -62,7 +82,10 @@
                         <span class="table__title">{{ reserva.livro_titulo }}</span>
                         <span class="table__subtitle">{{ reserva.livro_autor }}</span>
                     </td>
-                    <td>{{ reserva.usuario_nome }}</td>
+                    <td>
+                        <span class="table__title">{{ reserva.usuario_nome }}</span>
+                        <span class="table__subtitle">{{ reserva.usuario_telefone | telefone }}</span>
+                    </td>
                     <td class="table__nowrap">{{ reserva.data_reserva | data_br }}</td>
                     <td>
                         {% if reserva.disponivel_para_retirada %}

@@ -198,6 +198,11 @@ button:focus-visible,
     color: var(--color-danger-dark);
 }
 
+.alert--info {
+    background-color: #fdf3d8;
+    color: #7a5200;
+}
+
 /* Cards de estatística */
 .stats {
     display: grid;
@@ -755,4 +760,54 @@ button:focus-visible,
     font-size: 0.85rem;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.contagem {
+    display: inline-block;
+    min-width: 1.25rem;
+    margin-left: 0.35rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background-color: var(--color-danger);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    text-align: center;
+}
+
+.aviso-reservas {
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #f0d58a;
+    border-radius: var(--radius);
+    background-color: #fdf3d8;
+    color: #7a5200;
+}
+
+.aviso-reservas h2 {
+    font-size: 1rem;
+}
+
+.aviso-reservas p {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 0.9rem;
+}
+
+.aviso-reservas__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.aviso-reservas__lista li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.9rem;
 }

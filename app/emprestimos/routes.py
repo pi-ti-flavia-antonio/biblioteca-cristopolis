@@ -81,14 +81,16 @@ def cadastrar():
 
 
 def _reservas(erros=None, id_usuario=None, id_livro=None):
+    reservas = reservas_repository.listar_ativas()
     resposta = render_template(
         "emprestimos/reservas.html",
         aba="reservas",
         erros=erros or {},
         usuario=usuarios_repository.obter(id_usuario) if id_usuario else None,
         livro=livros_repository.obter(id_livro) if id_livro else None,
-        reservas=reservas_repository.listar_ativas(),
-        total=reservas_repository.contar_ativas(),
+        reservas=reservas,
+        prontas=[r for r in reservas if r["disponivel_para_retirada"]],
+        total=len(reservas),
     )
     return resposta, (400 if erros else 200)
 
