@@ -17,19 +17,21 @@
         return escapar(texto.slice(0, posicao)) + "<mark>" + escapar(texto.slice(posicao, fim)) + "</mark>" + escapar(texto.slice(fim));
     }
 
-    function iniciar(raiz) {
-        var url = raiz.dataset.url;
-        var nome = raiz.dataset.nome;
-        var oculto = raiz.querySelector("input[type=hidden]");
-        var caixa = raiz.querySelector("[data-caixa]");
-        var campo = caixa.querySelector("input");
-        var lista = raiz.querySelector("[data-lista]");
-        var escolhido = raiz.querySelector("[data-escolhido]");
-        var textoEscolhido = escolhido.querySelector("[data-texto]");
+    function montarUrl(url, termo) {
+        return url + (url.indexOf("?") > -1 ? "&" : "?") + "q=" + encodeURIComponent(termo.trim());
+    }
+
+    function sugestoes(cfg) {
+        var campo = cfg.campo;
+        var lista = cfg.lista;
         var itens = [];
         var ativo = -1;
         var pedido = 0;
         var temporizador = null;
+
+        function desabilitado(item) {
+            return cfg.desabilitado ? cfg.desabilitado(item) : false;
+        }
 
         function abrir(aberta) {
             lista.style.display = aberta ? "block" : "none";
@@ -39,7 +41,7 @@
 
         function proximoDisponivel(inicio, passo) {
             for (var i = inicio; i >= 0 && i < itens.length; i += passo) {
-                if (itens[i].disponiveis !== 0) return i;
+                if (!desabilitado(itens[i])) return i;
             }
             return -1;
         }
@@ -50,27 +52,32 @@
                 opcoes[i].setAttribute("aria-selected", i === ativo ? "true" : "false");
             }
             if (ativo > -1) campo.setAttribute("aria-activedescendant", opcoes[ativo].id);
+            else campo.removeAttribute("aria-activedescendant");
+        }
+
+        function selo(item) {
+            if (typeof item.disponiveis === "number") {
+                return item.disponiveis === 0
+                    ? '<span class="badge badge--overdue">Sem exemplar</span>'
+                    : '<span class="badge">' + item.disponiveis + (item.disponiveis === 1 ? " disponível" : " disponíveis") + "</span>";
+            }
+            if (item.rotulo) return '<span class="badge badge--neutral">' + escapar(item.rotulo) + "</span>";
+            return "";
         }
 
         function desenhar(termo) {
             if (!itens.length) {
-                lista.innerHTML = '<li class="sg__vazio">Nenhum ' + nome + ' encontrado para "' + escapar(termo.trim()) + '".</li>';
+                lista.innerHTML = '<li class="sg__vazio">Nenhum ' + cfg.nome + ' encontrado para "' + escapar(termo.trim()) + '".</li>';
                 ativo = -1;
             } else {
                 lista.innerHTML = itens.map(function (item, i) {
-                    var esgotado = item.disponiveis === 0;
-                    var selo = "";
-                    if (typeof item.disponiveis === "number") {
-                        selo = esgotado
-                            ? '<span class="badge badge--overdue">Sem exemplar</span>'
-                            : '<span class="badge">' + item.disponiveis + (item.disponiveis === 1 ? " disponível" : " disponíveis") + "</span>";
-                    }
+                    var bloqueado = desabilitado(item);
                     var sub = item.subtitulo ? '<span class="sg__sub">' + destacar(item.subtitulo, termo) + "</span>" : "";
                     return '<li role="option" id="' + lista.id + "-" + i + '" data-i="' + i + '"' +
-                        (esgotado ? ' class="sg__esgotado" aria-disabled="true"' : "") + ' aria-selected="false">' +
-                        "<span>" + destacar(item.titulo, termo) + sub + "</span>" + selo + "</li>";
+                        (bloqueado ? ' class="sg__esgotado" aria-disabled="true"' : "") + ' aria-selected="false">' +
+                        "<span>" + destacar(item.titulo, termo) + sub + "</span>" + selo(item) + "</li>";
                 }).join("");
-                ativo = proximoDisponivel(0, 1);
+                ativo = cfg.marcarPrimeiro ? proximoDisponivel(0, 1) : -1;
             }
             abrir(true);
             marcar();
@@ -84,7 +91,7 @@
                 return;
             }
             var este = ++pedido;
-            fetch(url + "?q=" + encodeURIComponent(termo.trim()), { headers: { Accept: "application/json" } })
+            fetch(montarUrl(cfg.url, termo), { headers: { Accept: "application/json" } })
                 .then(function (resposta) { return resposta.json(); })
                 .then(function (dados) {
                     if (este !== pedido) return;
@@ -101,16 +108,9 @@
 
         function escolher(i) {
             var item = itens[i];
-            if (!item || item.disponiveis === 0) return;
-            oculto.value = item.id;
-            textoEscolhido.textContent = nome === "livro"
-                ? item.titulo + ", de " + item.subtitulo
-                : item.titulo + (item.subtitulo ? " (" + item.subtitulo.replace(/^CPF /, "") + ")" : "");
-            caixa.hidden = true;
-            escolhido.hidden = false;
+            if (!item || desabilitado(item)) return;
             abrir(false);
-            var erro = raiz.querySelector(".field__error");
-            if (erro) erro.remove();
+            cfg.aoEscolher(item);
         }
 
         campo.addEventListener("input", function () {
@@ -123,12 +123,17 @@
         });
 
         campo.addEventListener("keydown", function (evento) {
+            var aberta = lista.style.display === "block";
             if (evento.key === "Enter") {
-                evento.preventDefault();
-                if (lista.style.display === "block" && ativo > -1) escolher(ativo);
+                if (aberta && ativo > -1) {
+                    evento.preventDefault();
+                    escolher(ativo);
+                } else if (cfg.bloquearEnter) {
+                    evento.preventDefault();
+                }
                 return;
             }
-            if (lista.style.display !== "block") return;
+            if (!aberta) return;
             if (evento.key === "ArrowDown") {
                 evento.preventDefault();
                 var proximo = proximoDisponivel(ativo + 1, 1);
@@ -137,6 +142,7 @@
                 evento.preventDefault();
                 var anterior = proximoDisponivel(ativo - 1, -1);
                 if (anterior > -1) { ativo = anterior; marcar(); }
+                else if (!cfg.marcarPrimeiro) { ativo = -1; marcar(); }
             } else if (evento.key === "Escape") {
                 abrir(false);
             }
@@ -152,14 +158,48 @@
 
         lista.addEventListener("mousemove", function (evento) {
             var opcao = evento.target.closest("li[role=option]");
-            if (opcao && itens[Number(opcao.dataset.i)].disponiveis !== 0) {
+            if (opcao && !desabilitado(itens[Number(opcao.dataset.i)])) {
                 ativo = Number(opcao.dataset.i);
                 marcar();
             }
         });
 
         document.addEventListener("click", function (evento) {
-            if (!caixa.contains(evento.target)) abrir(false);
+            if (!cfg.caixa.contains(evento.target)) abrir(false);
+        });
+    }
+
+    function iniciarEscolha(raiz) {
+        var nome = raiz.dataset.nome;
+        var reserva = raiz.hasAttribute("data-reserva");
+        var oculto = raiz.querySelector("input[type=hidden]");
+        var caixa = raiz.querySelector("[data-caixa]");
+        var campo = caixa.querySelector("input");
+        var escolhido = raiz.querySelector("[data-escolhido]");
+        var textoEscolhido = escolhido.querySelector("[data-texto]");
+
+        sugestoes({
+            campo: campo,
+            lista: raiz.querySelector("[data-lista]"),
+            caixa: caixa,
+            url: raiz.dataset.url,
+            nome: nome,
+            marcarPrimeiro: true,
+            bloquearEnter: true,
+            desabilitado: function (item) {
+                if (typeof item.disponiveis !== "number") return false;
+                return reserva ? item.disponiveis !== 0 : item.disponiveis === 0;
+            },
+            aoEscolher: function (item) {
+                oculto.value = item.id;
+                textoEscolhido.textContent = typeof item.disponiveis === "number"
+                    ? item.titulo + ", de " + item.subtitulo
+                    : item.titulo + (item.subtitulo ? " (" + item.subtitulo.replace(/^CPF /, "") + ")" : "");
+                caixa.hidden = true;
+                escolhido.hidden = false;
+                var erro = raiz.querySelector(".field__error");
+                if (erro) erro.remove();
+            }
         });
 
         escolhido.querySelector("[data-trocar]").addEventListener("click", function () {
@@ -171,6 +211,29 @@
         });
     }
 
-    var campos = document.querySelectorAll("[data-busca]");
-    for (var i = 0; i < campos.length; i++) iniciar(campos[i]);
+    function iniciarFiltro(raiz) {
+        var caixa = raiz.querySelector(".sbox");
+        var campo = caixa.querySelector("input");
+        var formulario = campo.form;
+
+        sugestoes({
+            campo: campo,
+            lista: raiz.querySelector("[data-lista]"),
+            caixa: caixa,
+            url: raiz.dataset.url,
+            nome: raiz.dataset.nome,
+            marcarPrimeiro: false,
+            bloquearEnter: false,
+            aoEscolher: function (item) {
+                campo.value = item.titulo;
+                formulario.submit();
+            }
+        });
+    }
+
+    var escolhas = document.querySelectorAll("[data-busca]");
+    for (var i = 0; i < escolhas.length; i++) iniciarEscolha(escolhas[i]);
+
+    var filtros = document.querySelectorAll("[data-busca-filtro]");
+    for (var j = 0; j < filtros.length; j++) iniciarFiltro(filtros[j]);
 })();

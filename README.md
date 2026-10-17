@@ -6,6 +6,7 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 
 ## O que o sistema faz
 
+- **Todas as buscas** mostram sugestões enquanto se digita. Escolher uma sugestão faz a busca na hora, e Enter busca o que foi digitado.
 - **Livros:** cadastro, edição, exclusão e consulta por título, autor ou ISBN (sem diferenciar acentos nem maiúsculas). Ao digitar o ISBN, o botão "Buscar dados" preenche título, autor e ano pela Open Library, com o Google Books como segunda tentativa. Sem internet, o cadastro continua manual.
 - **Usuários:** cadastro, edição, exclusão e busca por nome ou CPF (com ou sem pontuação). O CPF é validado pelos dígitos verificadores.
 - **Empréstimos:** o usuário e o livro são escolhidos em campos de busca que mostram sugestões enquanto se digita, ignorando acentos. O prazo padrão é de 30 dias, e o sistema bloqueia um novo empréstimo para quem ainda está com um livro. Se o usuário ou o livro não existir, há um atalho para cadastrá-lo e voltar ao empréstimo.
@@ -19,7 +20,7 @@ Ainda não implementados: backup do banco para a nuvem e login de funcionários.
 ## Tecnologias
 
 - **Backend:** Python com Flask
-- **Interface:** HTML gerado com templates Jinja e CSS responsivo. O JavaScript se limita a dois trechos: as sugestões enquanto se digita na tela de empréstimo e o aviso de geração do PDF na tela de relatórios
+- **Interface:** HTML gerado com templates Jinja e CSS responsivo. O JavaScript se limita a dois trechos: as sugestões enquanto se digita (em todas as barras de busca e nos campos de usuário e livro de empréstimos e reservas) e o aviso de geração do PDF na tela de relatórios
 - **Banco de dados:** SQLite, salvo localmente em `data/biblioteca.db`
 - **Janela do sistema:** pywebview, que exibe o sistema como programa, sem barra de endereço
 - **Bibliotecas auxiliares:** requests (busca por ISBN) e reportlab (geração do PDF)

@@ -108,7 +108,7 @@ def sugestoes():
             "subtitulo": livro["autor"],
             "disponiveis": livro["quantidade_disponivel"],
         }
-        for livro in repository.sugerir(termo)
+        for livro in repository.sugerir(termo, somente_esgotados=request.args.get("esgotados") == "1")
     ])
 
 

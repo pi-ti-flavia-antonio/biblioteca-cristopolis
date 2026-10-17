@@ -53,6 +53,32 @@ def _filtro_busca(termo, apenas_ativos=False):
     return "WHERE " + " AND ".join(condicoes), parametros
 
 
+def sugerir(termo, apenas_ativos=False, limite=6):
+    """Livros e usuários que aparecem em empréstimos e combinam com o que está sendo digitado."""
+    termo = termo.strip()
+    if not termo:
+        return []
+    ativo = "emp.status = 'ativo' AND " if apenas_ativos else ""
+    parametros = {"texto": f"%{_escapar_like(normalizar(termo))}%", "limite": max(limite // 2, 1)}
+    db = get_db()
+    livros = db.execute(
+        f"SELECT DISTINCT l.titulo AS titulo, l.autor AS subtitulo FROM emprestimo emp "
+        f"JOIN livro l ON l.id_livro = emp.id_livro "
+        f"WHERE {ativo}normalizar(l.titulo) LIKE :texto ESCAPE '\\' ORDER BY normalizar(l.titulo) LIMIT :limite",
+        parametros,
+    ).fetchall()
+    usuarios = db.execute(
+        f"SELECT DISTINCT u.nome AS titulo FROM emprestimo emp "
+        f"JOIN usuario u ON u.id_usuario = emp.id_usuario "
+        f"WHERE {ativo}normalizar(u.nome) LIKE :texto ESCAPE '\\' ORDER BY normalizar(u.nome) LIMIT :limite",
+        parametros,
+    ).fetchall()
+    return (
+        [{"titulo": l["titulo"], "subtitulo": l["subtitulo"], "rotulo": "Livro"} for l in livros]
+        + [{"titulo": u["titulo"], "subtitulo": "", "rotulo": "Usuário"} for u in usuarios]
+    )
+
+
 def contar(termo=""):
     filtro, parametros = _filtro_busca(termo)
     return get_db().execute(

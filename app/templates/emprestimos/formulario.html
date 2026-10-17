@@ -1,8 +1,5 @@
 {% extends "base.html" %}
-
-{% macro lupa() -%}
-<svg class="sf__icone" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
-{%- endmacro %}
+{% from "_componentes.html" import barra_busca, campo_escolha %}
 
 {% block titulo %}Realizar empréstimo | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Empréstimos{% endblock %}
@@ -18,59 +15,29 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="form__grid">
-            <div class="field field--wide" data-busca data-url="{{ url_for('usuarios.sugestoes') }}" data-nome="usuário">
-                <label for="busca-usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
-                <input type="hidden" name="id_usuario" value="{{ usuario.id_usuario if usuario else '' }}">
+            {% call campo_escolha(
+                "usuario", "Usuário", "usuário", url_for("usuarios.sugestoes"), "id_usuario",
+                usuario.id_usuario if usuario else "",
+                (usuario.nome ~ (" (" ~ (usuario.cpf | cpf_mascarado) ~ ")" if usuario.cpf else "")) if usuario else "",
+                "Digite o nome ou o CPF", erros.id_usuario, autofoco=True) %}
+            <p class="field__hint">Funciona sem acento e com ou sem pontos no CPF.</p>
+            <p class="field__hint">
+                O usuário que você procura não está cadastrado?
+                <a class="link-action" href="{{ url_for('usuarios.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
+            </p>
+            {% endcall %}
 
-                <div class="sbox" data-caixa{% if usuario %} hidden{% endif %}>
-                    <div class="sf">
-                        {{ lupa() }}
-                        <input id="busca-usuario" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-usuario" placeholder="Digite o nome ou o CPF" autofocus>
-                    </div>
-                    <ul class="sg" id="lista-usuario" role="listbox" data-lista></ul>
-                </div>
-
-                <div class="escolhido" data-escolhido{% if not usuario %} hidden{% endif %}>
-                    <span data-texto>{% if usuario %}{{ usuario.nome }}{% if usuario.cpf %} ({{ usuario.cpf | cpf_mascarado }}){% endif %}{% endif %}</span>
-                    <button type="button" class="escolhido__trocar" data-trocar>Trocar</button>
-                </div>
-
-                {% if erros.id_usuario %}
-                <p class="field__error">{{ erros.id_usuario }}</p>
-                {% endif %}
-                <p class="field__hint">Funciona sem acento e com ou sem pontos no CPF.</p>
-                <p class="field__hint">
-                    O usuário que você procura não está cadastrado?
-                    <a class="link-action" href="{{ url_for('usuarios.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
-                </p>
-            </div>
-
-            <div class="field field--wide" data-busca data-url="{{ url_for('livros.sugestoes') }}" data-nome="livro">
-                <label for="busca-livro">Livro <span class="field__required" title="Obrigatório">*</span></label>
-                <input type="hidden" name="id_livro" value="{{ livro.id_livro if livro else '' }}">
-
-                <div class="sbox" data-caixa{% if livro %} hidden{% endif %}>
-                    <div class="sf">
-                        {{ lupa() }}
-                        <input id="busca-livro" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-livro" placeholder="Digite o título, o autor ou o ISBN">
-                    </div>
-                    <ul class="sg" id="lista-livro" role="listbox" data-lista></ul>
-                </div>
-
-                <div class="escolhido" data-escolhido{% if not livro %} hidden{% endif %}>
-                    <span data-texto>{% if livro %}{{ livro.titulo }}, de {{ livro.autor }}{% endif %}</span>
-                    <button type="button" class="escolhido__trocar" data-trocar>Trocar</button>
-                </div>
-
-                {% if erros.id_livro %}
-                <p class="field__error">{{ erros.id_livro }}</p>
-                {% endif %}
-                <p class="field__hint">Livros sem exemplar aparecem na lista, mas não podem ser escolhidos.</p>
-                <p class="field__hint">
-                    O livro que você procura não está cadastrado no acervo?
-                    <a class="link-action" href="{{ url_for('livros.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
-                </p>
-            </div>
+            {% call campo_escolha(
+                "livro", "Livro", "livro", url_for("livros.sugestoes"), "id_livro",
+                livro.id_livro if livro else "",
+                (livro.titulo ~ ", de " ~ livro.autor) if livro else "",
+                "Digite o título, o autor ou o ISBN", erros.id_livro) %}
+            <p class="field__hint">Livros sem exemplar aparecem na lista, mas não podem ser escolhidos.</p>
+            <p class="field__hint">
+                O livro que você procura não está cadastrado no acervo?
+                <a class="link-action" href="{{ url_for('livros.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
+            </p>
+            {% endcall %}
         </div>
 
         <p class="panel__text">O prazo de devolução é de {{ prazo_dias }} dias a partir de hoje, calculado automaticamente ao confirmar.</p>
@@ -82,5 +49,4 @@
     </form>
 </section>
 
-<script src="{{ url_for('static', filename='js/busca.js') }}"></script>
 {% endblock %}

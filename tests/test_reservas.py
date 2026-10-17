@@ -9,14 +9,37 @@ def test_lista_vazia_mostra_mensagem(client):
     assert "Nenhuma reserva ativa no momento." in html(resposta)
 
 
-def test_so_livros_esgotados_aparecem_no_formulario(client, criar_livro):
-    criar_livro("Dom Casmurro", quantidade=1)  # com exemplar disponível
-    criar_livro("1984", quantidade=1)
-
+def test_formulario_de_reserva_usa_busca_so_de_livros_esgotados(client):
     pagina = html(client.get("/emprestimos/reservas"))
 
-    assert "Dom Casmurro" not in pagina
-    assert "Nenhum livro esgotado no momento." in pagina
+    assert 'data-url="/livros/sugestoes?esgotados=1"' in pagina
+    assert "data-reserva" in pagina
+    assert 'data-url="/usuarios/sugestoes"' in pagina
+    assert "Só aparecem livros sem exemplar disponível." in pagina
+
+
+def test_sugestoes_de_reserva_mostram_so_livros_esgotados(client, criar_livro, registrar_emprestimo):
+    criar_livro("Dom Casmurro", quantidade=2)  # com exemplar disponível
+    id_esgotado = criar_livro("Dom Quixote", quantidade=1)
+    registrar_emprestimo(id_esgotado)  # esgota o único exemplar
+
+    todos = client.get("/livros/sugestoes", query_string={"q": "dom"}).get_json()["itens"]
+    esgotados = client.get("/livros/sugestoes", query_string={"q": "dom", "esgotados": "1"}).get_json()["itens"]
+
+    assert {i["titulo"] for i in todos} == {"Dom Casmurro", "Dom Quixote"}
+    assert [i["titulo"] for i in esgotados] == ["Dom Quixote"]
+
+
+def test_reserva_com_erro_mantem_o_que_foi_escolhido(post, criar_usuario):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+
+    resposta = post("/emprestimos/reservas", {"id_usuario": id_usuario, "id_livro": ""})
+    pagina = html(resposta)
+
+    assert resposta.status_code == 400
+    assert "Selecione o livro." in pagina
+    assert f'name="id_usuario" value="{id_usuario}"' in pagina
+    assert "Maria Oliveira (***.***.***-09)" in pagina
 
 
 def test_registrar_reserva_valida(client, post, criar_usuario, criar_livro, registrar_emprestimo):

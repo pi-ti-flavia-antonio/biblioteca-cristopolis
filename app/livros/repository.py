@@ -79,11 +79,13 @@ def listar(termo="", pagina=1):
     ).fetchall()
 
 
-def sugerir(termo, limite=6):
+def sugerir(termo, limite=6, somente_esgotados=False):
     """Poucos livros que combinam com o que está sendo digitado, para as sugestões."""
     filtro, parametros = _filtro_busca(termo)
     if not filtro:
         return []
+    if somente_esgotados:
+        filtro = filtro.replace("WHERE ", "WHERE (", 1) + ") AND (l.quantidade_total - COALESCE(e.ativos, 0)) <= 0"
     return get_db().execute(
         f"{_SELECT_LIVROS} {filtro} ORDER BY normalizar(l.titulo), l.id_livro LIMIT :limite",
         {**parametros, "limite": limite},

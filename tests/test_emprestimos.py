@@ -341,3 +341,72 @@ def test_arquivo_de_busca_e_servido(client):
 
     assert resposta.status_code == 200
     assert b"role=option" in resposta.data
+
+
+def test_sugestoes_do_historico_trazem_livros_e_usuarios_com_emprestimo(client, criar_usuario, criar_livro, registrar_emprestimo):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro")
+    criar_livro("Dom Quixote")  # nunca emprestado, nao deve aparecer
+    registrar_emprestimo(id_livro, id_usuario=id_usuario)
+
+    por_livro = _json(client.get("/emprestimos/sugestoes", query_string={"q": "dom"}))
+    por_usuario = _json(client.get("/emprestimos/sugestoes", query_string={"q": "MARIA"}))
+
+    assert [(i["rotulo"], i["titulo"]) for i in por_livro] == [("Livro", "Dom Casmurro")]
+    assert [(i["rotulo"], i["titulo"]) for i in por_usuario] == [("Usuário", "Maria Oliveira")]
+
+
+def test_sugestoes_do_historico_ignoram_acento(client, criar_usuario, criar_livro, registrar_emprestimo):
+    id_usuario = criar_usuario("José Antônio", cpf="12345678909")
+    registrar_emprestimo(criar_livro("Vidas Secas"), id_usuario=id_usuario)
+
+    itens = _json(client.get("/emprestimos/sugestoes", query_string={"q": "jose antonio"}))
+
+    assert [i["titulo"] for i in itens] == ["José Antônio"]
+
+
+def test_sugestoes_das_devolucoes_so_olham_emprestimos_ativos(client, criar_usuario, criar_livro, registrar_emprestimo):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    registrar_emprestimo(criar_livro("Dom Casmurro"), id_usuario=id_usuario, status="devolvido")
+    registrar_emprestimo(criar_livro("Dom Quixote"), id_usuario=id_usuario)
+
+    historico = _json(client.get("/emprestimos/sugestoes", query_string={"q": "dom"}))
+    ativos = _json(client.get("/emprestimos/sugestoes", query_string={"q": "dom", "ativos": "1"}))
+
+    assert {i["titulo"] for i in historico} == {"Dom Casmurro", "Dom Quixote"}
+    assert [i["titulo"] for i in ativos] == ["Dom Quixote"]
+
+
+def test_sugestoes_do_historico_sem_termo_voltam_vazias(client):
+    assert _json(client.get("/emprestimos/sugestoes")) == []
+
+
+def test_as_quatro_barras_de_consulta_tem_sugestoes(client):
+    esperado = {
+        "/livros": 'data-url="/livros/sugestoes"',
+        "/usuarios": 'data-url="/usuarios/sugestoes"',
+        "/emprestimos": 'data-url="/emprestimos/sugestoes"',
+        "/devolucoes": 'data-url="/emprestimos/sugestoes?ativos=1"',
+    }
+    for rota, trecho in esperado.items():
+        pagina = html(client.get(rota))
+        assert "data-busca-filtro" in pagina, rota
+        assert trecho in pagina, rota
+        assert 'role="combobox"' in pagina, rota
+        assert 'name="q"' in pagina, rota
+
+
+def test_barra_de_consulta_mantem_o_termo_e_o_botao_buscar(client, criar_livro):
+    criar_livro("Dom Casmurro")
+
+    pagina = html(client.get("/livros", query_string={"q": "casmurro"}))
+
+    assert 'value="casmurro"' in pagina
+    assert ">Buscar<" in pagina
+    assert ">Limpar<" in pagina
+
+
+def test_script_de_busca_e_carregado_em_todas_as_paginas(client):
+    for rota in ["/", "/livros", "/usuarios", "/emprestimos", "/devolucoes", "/emprestimos/novo", "/emprestimos/reservas"]:
+        assert 'src="/static/js/busca.js"' in html(client.get(rota)), rota
+

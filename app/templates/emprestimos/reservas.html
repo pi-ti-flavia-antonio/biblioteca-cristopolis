@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_componentes.html" import barra_busca, campo_escolha %}
 
 {% block titulo %}Reservas | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Empréstimos{% endblock %}
@@ -14,35 +15,20 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="form__grid">
-            <div class="field field--wide">
-                <label for="id_usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
-                <select id="id_usuario" name="id_usuario" class="input{% if erros.id_usuario %} input--error{% endif %}">
-                    <option value="">Selecione o usuário</option>
-                    {% for usuario in usuarios %}
-                    <option value="{{ usuario.id_usuario }}"{% if selecionado_usuario == usuario.id_usuario|string %} selected{% endif %}>
-                        {{ usuario.nome }} ({{ usuario.cpf | cpf }})
-                    </option>
-                    {% endfor %}
-                </select>
-                {% if erros.id_usuario %}<p class="field__error">{{ erros.id_usuario }}</p>{% endif %}
-            </div>
+            {% call campo_escolha(
+                "usuario", "Usuário", "usuário", url_for("usuarios.sugestoes"), "id_usuario",
+                usuario.id_usuario if usuario else "",
+                (usuario.nome ~ (" (" ~ (usuario.cpf | cpf_mascarado) ~ ")" if usuario.cpf else "")) if usuario else "",
+                "Digite o nome ou o CPF", erros.id_usuario) %}
+            {% endcall %}
 
-            <div class="field field--wide">
-                <label for="id_livro">Livro esgotado <span class="field__required" title="Obrigatório">*</span></label>
-                <select id="id_livro" name="id_livro" class="input{% if erros.id_livro %} input--error{% endif %}">
-                    <option value="">Selecione o livro</option>
-                    {% for livro in livros %}
-                    <option value="{{ livro.id_livro }}"{% if selecionado_livro == livro.id_livro|string %} selected{% endif %}>
-                        {{ livro.titulo }}, de {{ livro.autor }}
-                    </option>
-                    {% endfor %}
-                </select>
-                {% if erros.id_livro %}
-                <p class="field__error">{{ erros.id_livro }}</p>
-                {% elif not livros %}
-                <p class="field__hint">Nenhum livro esgotado no momento. Reservas só fazem sentido para livros sem exemplar disponível.</p>
-                {% endif %}
-            </div>
+            {% call campo_escolha(
+                "livro", "Livro esgotado", "livro esgotado", url_for("livros.sugestoes", esgotados=1), "id_livro",
+                livro.id_livro if livro else "",
+                (livro.titulo ~ ", de " ~ livro.autor) if livro else "",
+                "Digite o título, o autor ou o ISBN", erros.id_livro, reserva=True) %}
+            <p class="field__hint">Só aparecem livros sem exemplar disponível. Se ele tiver exemplar, registre um empréstimo.</p>
+            {% endcall %}
         </div>
 
         <div class="form__actions">

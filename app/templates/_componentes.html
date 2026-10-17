@@ -1,0 +1,47 @@
+{% macro lupa() -%}
+<svg class="sf__icone" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+{%- endmacro %}
+
+{% macro barra_busca(url_sugestoes, nome, rotulo, placeholder, termo, destino) -%}
+<form class="search search--sugestoes" method="get" action="{{ destino }}" role="search">
+    <div class="busca-filtro" data-busca-filtro data-url="{{ url_sugestoes }}" data-nome="{{ nome }}">
+        <label class="visually-hidden" for="busca">{{ rotulo }}</label>
+        <div class="sbox">
+            <div class="sf">
+                {{ lupa() }}
+                <input id="busca" type="search" name="q" value="{{ termo }}" placeholder="{{ placeholder }}" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-busca" autofocus>
+            </div>
+            <ul class="sg" id="lista-busca" role="listbox" data-lista></ul>
+        </div>
+    </div>
+    <button class="button button--primary" type="submit">Buscar</button>
+    {% if termo %}
+    <a class="button button--secondary" href="{{ destino }}">Limpar</a>
+    {% endif %}
+</form>
+{%- endmacro %}
+
+{% macro campo_escolha(id_campo, rotulo, nome, url_sugestoes, nome_oculto, valor, texto, placeholder, erro="", reserva=False, autofoco=False) -%}
+<div class="field field--wide" data-busca data-url="{{ url_sugestoes }}" data-nome="{{ nome }}"{% if reserva %} data-reserva{% endif %}>
+    <label for="busca-{{ id_campo }}">{{ rotulo }} <span class="field__required" title="Obrigatório">*</span></label>
+    <input type="hidden" name="{{ nome_oculto }}" value="{{ valor }}">
+
+    <div class="sbox" data-caixa{% if valor %} hidden{% endif %}>
+        <div class="sf">
+            {{ lupa() }}
+            <input id="busca-{{ id_campo }}" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-{{ id_campo }}" placeholder="{{ placeholder }}"{% if autofoco %} autofocus{% endif %}>
+        </div>
+        <ul class="sg" id="lista-{{ id_campo }}" role="listbox" data-lista></ul>
+    </div>
+
+    <div class="escolhido" data-escolhido{% if not valor %} hidden{% endif %}>
+        <span data-texto>{{ texto }}</span>
+        <button type="button" class="escolhido__trocar" data-trocar>Trocar</button>
+    </div>
+
+    {% if erro %}
+    <p class="field__error">{{ erro }}</p>
+    {% endif %}
+    {% if caller %}{{ caller() }}{% endif %}
+</div>
+{%- endmacro %}

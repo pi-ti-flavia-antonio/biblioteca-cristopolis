@@ -432,6 +432,15 @@ button:focus-visible,
     flex: 1;
 }
 
+.search--sugestoes {
+    align-items: flex-start;
+}
+
+.busca-filtro {
+    flex: 1;
+    min-width: 0;
+}
+
 .pagination {
     display: flex;
     align-items: center;

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_componentes.html" import barra_busca, campo_escolha %}
 
 {% block titulo %}Consultar acervo | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Livros{% endblock %}
@@ -10,14 +11,7 @@
 <section class="panel" aria-labelledby="acervo-heading">
     <h2 id="acervo-heading" class="visually-hidden">Acervo</h2>
 
-    <form class="search" method="get" action="{{ url_for('livros.consultar') }}" role="search">
-        <label class="visually-hidden" for="busca">Buscar livro</label>
-        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por título, autor ou ISBN" autofocus>
-        <button class="button button--primary" type="submit">Buscar</button>
-        {% if termo %}
-        <a class="button button--secondary" href="{{ url_for('livros.consultar') }}">Limpar</a>
-        {% endif %}
-    </form>
+    {{ barra_busca(url_for('livros.sugestoes'), "livro", "Buscar livro", "Buscar por título, autor ou ISBN", termo, url_for('livros.consultar')) }}
 
     <div class="table-wrapper">
         <table class="table">

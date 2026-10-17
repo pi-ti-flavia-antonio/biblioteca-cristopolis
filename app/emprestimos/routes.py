@@ -1,6 +1,6 @@
 import math
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 
 from . import repository, reservas_repository
 from ..livros import repository as livros_repository
@@ -19,6 +19,13 @@ def _formulario(erros=None, id_usuario=None, id_livro=None):
         prazo_dias=repository.PRAZO_PADRAO_DIAS,
     )
     return resposta, (400 if erros else 200)
+
+
+@emprestimos_bp.get("/sugestoes")
+def sugestoes():
+    termo = request.args.get("q", "").strip()
+    apenas_ativos = request.args.get("ativos") == "1"
+    return jsonify(itens=repository.sugerir(termo, apenas_ativos=apenas_ativos))
 
 
 @emprestimos_bp.get("")
@@ -73,21 +80,15 @@ def cadastrar():
     return redirect(url_for("emprestimos.cadastrar"))
 
 
-def _livros_esgotados():
-    return [l for l in livros_repository.opcoes_para_emprestimo() if l["quantidade_disponivel"] <= 0]
-
-
-def _reservas(erros=None, selecionado_usuario="", selecionado_livro=""):
+def _reservas(erros=None, id_usuario=None, id_livro=None):
     resposta = render_template(
         "emprestimos/reservas.html",
         aba="reservas",
         erros=erros or {},
-        usuarios=usuarios_repository.opcoes_para_emprestimo(),
-        livros=_livros_esgotados(),
+        usuario=usuarios_repository.obter(id_usuario) if id_usuario else None,
+        livro=livros_repository.obter(id_livro) if id_livro else None,
         reservas=reservas_repository.listar_ativas(),
         total=reservas_repository.contar_ativas(),
-        selecionado_usuario=selecionado_usuario,
-        selecionado_livro=selecionado_livro,
     )
     return resposta, (400 if erros else 200)
 
@@ -106,16 +107,16 @@ def reservas():
     if not id_livro:
         erros["id_livro"] = "Selecione o livro."
     if erros:
-        return _reservas(erros, str(id_usuario or ""), str(id_livro or ""))
+        return _reservas(erros, id_usuario, id_livro)
 
     try:
         reservas_repository.criar(id_usuario, id_livro)
     except reservas_repository.LivroComExemplarDisponivel:
         erros["id_livro"] = "Este livro já tem exemplar disponível. Registre um empréstimo em vez de uma reserva."
-        return _reservas(erros, str(id_usuario), str(id_livro))
+        return _reservas(erros, id_usuario, id_livro)
     except reservas_repository.ReservaDuplicada:
         erros["id_usuario"] = "Este usuário já tem uma reserva ativa para este livro."
-        return _reservas(erros, str(id_usuario), str(id_livro))
+        return _reservas(erros, id_usuario, id_livro)
 
     flash("Reserva registrada.", "success")
     return redirect(url_for("emprestimos.reservas"))

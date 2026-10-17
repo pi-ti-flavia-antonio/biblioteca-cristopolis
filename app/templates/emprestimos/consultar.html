@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_componentes.html" import barra_busca, campo_escolha %}
 
 {% block titulo %}Histórico de empréstimos | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Empréstimos{% endblock %}
@@ -10,14 +11,7 @@
 <section class="panel" aria-labelledby="emprestimos-heading">
     <h2 id="emprestimos-heading" class="visually-hidden">Empréstimos</h2>
 
-    <form class="search" method="get" action="{{ url_for('emprestimos.consultar') }}" role="search">
-        <label class="visually-hidden" for="busca">Buscar empréstimo</label>
-        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por livro ou usuário" autofocus>
-        <button class="button button--primary" type="submit">Buscar</button>
-        {% if termo %}
-        <a class="button button--secondary" href="{{ url_for('emprestimos.consultar') }}">Limpar</a>
-        {% endif %}
-    </form>
+    {{ barra_busca(url_for('emprestimos.sugestoes'), "resultado", "Buscar empréstimo", "Buscar por livro ou usuário", termo, url_for('emprestimos.consultar')) }}
 
     <div class="table-wrapper">
         <table class="table">

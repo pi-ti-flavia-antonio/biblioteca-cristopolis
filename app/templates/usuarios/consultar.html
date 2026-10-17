@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_componentes.html" import barra_busca, campo_escolha %}
 
 {% block titulo %}Ver usuários | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Usuários{% endblock %}
@@ -10,14 +11,7 @@
 <section class="panel" aria-labelledby="usuarios-heading">
     <h2 id="usuarios-heading" class="visually-hidden">Usuários</h2>
 
-    <form class="search" method="get" action="{{ url_for('usuarios.consultar') }}" role="search">
-        <label class="visually-hidden" for="busca">Buscar usuário</label>
-        <input id="busca" class="input" type="search" name="q" value="{{ termo }}" placeholder="Buscar por nome ou CPF" autofocus>
-        <button class="button button--primary" type="submit">Buscar</button>
-        {% if termo %}
-        <a class="button button--secondary" href="{{ url_for('usuarios.consultar') }}">Limpar</a>
-        {% endif %}
-    </form>
+    {{ barra_busca(url_for('usuarios.sugestoes'), "usuário", "Buscar usuário", "Buscar por nome ou CPF", termo, url_for('usuarios.consultar')) }}
 
     <div class="table-wrapper">
         <table class="table">
