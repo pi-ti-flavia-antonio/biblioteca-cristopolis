@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% macro lupa() -%}
+<svg class="sf__icone" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+{%- endmacro %}
+
 {% block titulo %}Realizar empréstimo | Biblioteca Cristópolis{% endblock %}
 {% block pagina_titulo %}Empréstimos{% endblock %}
 {% block pagina_subtitulo %}Registro e histórico de empréstimos{% endblock %}
@@ -12,82 +16,56 @@
 
     <form method="post" class="form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="ver_usuarios" value="{{ '1' if ver_usuarios else '' }}">
-        <input type="hidden" name="ver_livros" value="{{ '1' if ver_livros else '' }}">
-        <button type="submit" name="acao" value="atualizar" class="visually-hidden" tabindex="-1" aria-hidden="true"></button>
 
         <div class="form__grid">
-            <div class="field field--wide">
-                <label for="q_usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
-                <div class="field__inline">
-                    <input id="q_usuario" class="input" type="search" name="q_usuario" value="{{ termo_usuario }}" placeholder="Digite o nome ou o CPF" autofocus>
-                    <button type="submit" name="acao" value="buscar_usuario" class="button button--primary">Buscar</button>
-                    {% if termo_usuario %}
-                    <button type="submit" name="acao" value="limpar_usuario" class="button button--secondary">Limpar</button>
-                    {% endif %}
+            <div class="field field--wide" data-busca data-url="{{ url_for('usuarios.sugestoes') }}" data-nome="usuário">
+                <label for="busca-usuario">Usuário <span class="field__required" title="Obrigatório">*</span></label>
+                <input type="hidden" name="id_usuario" value="{{ usuario.id_usuario if usuario else '' }}">
+
+                <div class="sbox" data-caixa{% if usuario %} hidden{% endif %}>
+                    <div class="sf">
+                        {{ lupa() }}
+                        <input id="busca-usuario" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-usuario" placeholder="Digite o nome ou o CPF" autofocus>
+                    </div>
+                    <ul class="sg" id="lista-usuario" role="listbox" data-lista></ul>
                 </div>
 
-                {% if ver_usuarios %}
-                    {% if usuarios %}
-                    <div class="radio-list radio-list--scroll" role="radiogroup" aria-label="Usuários encontrados">
-                        {% for usuario in usuarios %}
-                        <label class="radio-list__item">
-                            <input type="radio" name="id_usuario" value="{{ usuario.id_usuario }}"
-                                   {%- if selecionado_usuario == usuario.id_usuario|string %} checked{% endif %}>
-                            {{ usuario.nome }} ({{ usuario.cpf | cpf }})
-                        </label>
-                        {% endfor %}
-                    </div>
-                    {% elif termo_usuario %}
-                    <p class="field__hint">Nenhum usuário encontrado para "{{ termo_usuario }}".</p>
-                    {% else %}
-                    <p class="field__hint">Nenhum usuário cadastrado ainda.</p>
-                    {% endif %}
-                {% elif not erros.id_usuario %}
-                <p class="field__hint">Pesquise por nome ou CPF e clique em Buscar para escolher o usuário.</p>
-                {% endif %}
+                <div class="escolhido" data-escolhido{% if not usuario %} hidden{% endif %}>
+                    <span data-texto>{% if usuario %}{{ usuario.nome }}{% if usuario.cpf %} ({{ usuario.cpf | cpf_mascarado }}){% endif %}{% endif %}</span>
+                    <button type="button" class="escolhido__trocar" data-trocar>Trocar</button>
+                </div>
+
                 {% if erros.id_usuario %}
                 <p class="field__error">{{ erros.id_usuario }}</p>
                 {% endif %}
+                <p class="field__hint">Funciona sem acento e com ou sem pontos no CPF.</p>
                 <p class="field__hint">
                     O usuário que você procura não está cadastrado?
                     <a class="link-action" href="{{ url_for('usuarios.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
                 </p>
             </div>
 
-            <div class="field field--wide">
-                <label for="q">Livro <span class="field__required" title="Obrigatório">*</span></label>
-                <div class="field__inline">
-                    <input id="q" class="input" type="search" name="q" value="{{ termo }}" placeholder="Digite o título, o autor ou o ISBN">
-                    <button type="submit" name="acao" value="buscar_livro" class="button button--primary">Buscar</button>
-                    {% if termo %}
-                    <button type="submit" name="acao" value="limpar_livro" class="button button--secondary">Limpar</button>
-                    {% endif %}
+            <div class="field field--wide" data-busca data-url="{{ url_for('livros.sugestoes') }}" data-nome="livro">
+                <label for="busca-livro">Livro <span class="field__required" title="Obrigatório">*</span></label>
+                <input type="hidden" name="id_livro" value="{{ livro.id_livro if livro else '' }}">
+
+                <div class="sbox" data-caixa{% if livro %} hidden{% endif %}>
+                    <div class="sf">
+                        {{ lupa() }}
+                        <input id="busca-livro" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-livro" placeholder="Digite o título, o autor ou o ISBN">
+                    </div>
+                    <ul class="sg" id="lista-livro" role="listbox" data-lista></ul>
                 </div>
 
-                {% if ver_livros %}
-                    {% if livros %}
-                    <div class="radio-list radio-list--scroll" role="radiogroup" aria-label="Livros encontrados">
-                        {% for livro in livros %}
-                        <label class="radio-list__item{% if livro.quantidade_disponivel <= 0 %} radio-list__item--disabled{% endif %}">
-                            <input type="radio" name="id_livro" value="{{ livro.id_livro }}"
-                                   {%- if selecionado_livro == livro.id_livro|string %} checked{% endif %}
-                                   {%- if livro.quantidade_disponivel <= 0 %} disabled{% endif %}>
-                            {{ livro.titulo }}, de {{ livro.autor }} ({{ livro.quantidade_disponivel }} {{ "disponível" if livro.quantidade_disponivel == 1 else "disponíveis" }})
-                        </label>
-                        {% endfor %}
-                    </div>
-                    {% elif termo %}
-                    <p class="field__hint">Nenhum livro encontrado para "{{ termo }}".</p>
-                    {% else %}
-                    <p class="field__hint">Nenhum livro cadastrado ainda.</p>
-                    {% endif %}
-                {% elif not erros.id_livro %}
-                <p class="field__hint">Pesquise por título, autor ou ISBN e clique em Buscar para escolher o livro.</p>
-                {% endif %}
+                <div class="escolhido" data-escolhido{% if not livro %} hidden{% endif %}>
+                    <span data-texto>{% if livro %}{{ livro.titulo }}, de {{ livro.autor }}{% endif %}</span>
+                    <button type="button" class="escolhido__trocar" data-trocar>Trocar</button>
+                </div>
+
                 {% if erros.id_livro %}
                 <p class="field__error">{{ erros.id_livro }}</p>
                 {% endif %}
+                <p class="field__hint">Livros sem exemplar aparecem na lista, mas não podem ser escolhidos.</p>
                 <p class="field__hint">
                     O livro que você procura não está cadastrado no acervo?
                     <a class="link-action" href="{{ url_for('livros.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
@@ -103,4 +81,6 @@
         </div>
     </form>
 </section>
+
+<script src="{{ url_for('static', filename='js/busca.js') }}"></script>
 {% endblock %}

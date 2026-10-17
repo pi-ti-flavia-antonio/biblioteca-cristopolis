@@ -47,6 +47,17 @@ def listar(termo="", pagina=1):
     ).fetchall()
 
 
+def sugerir(termo, limite=6):
+    """Poucos usuários que combinam com o que está sendo digitado, para as sugestões."""
+    filtro, parametros = _filtro_busca(termo)
+    if not filtro:
+        return []
+    return get_db().execute(
+        f"{_SELECT_USUARIOS} {filtro} ORDER BY normalizar(nome), id_usuario LIMIT :limite",
+        {**parametros, "limite": limite},
+    ).fetchall()
+
+
 def obter(id_usuario):
     return get_db().execute(f"{_SELECT_USUARIOS} WHERE id_usuario = ?", (id_usuario,)).fetchone()
 

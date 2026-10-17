@@ -9,25 +9,14 @@ from ..usuarios import repository as usuarios_repository
 emprestimos_bp = Blueprint("emprestimos", __name__, url_prefix="/emprestimos")
 
 
-def _formulario(
-    erros=None, *, selecionado_usuario="", selecionado_livro="",
-    termo="", termo_usuario="", ver_usuarios=False, ver_livros=False,
-):
-    ver_usuarios = ver_usuarios or bool(termo_usuario)
-    ver_livros = ver_livros or bool(termo)
+def _formulario(erros=None, id_usuario=None, id_livro=None):
     resposta = render_template(
         "emprestimos/formulario.html",
         aba="cadastrar",
         erros=erros or {},
-        usuarios=usuarios_repository.opcoes_para_emprestimo(termo_usuario) if ver_usuarios else [],
-        livros=livros_repository.opcoes_para_emprestimo(termo) if ver_livros else [],
-        ver_usuarios=ver_usuarios,
-        ver_livros=ver_livros,
-        termo=termo,
-        termo_usuario=termo_usuario,
+        usuario=usuarios_repository.obter(id_usuario) if id_usuario else None,
+        livro=livros_repository.obter(id_livro) if id_livro else None,
         prazo_dias=repository.PRAZO_PADRAO_DIAS,
-        selecionado_usuario=selecionado_usuario,
-        selecionado_livro=selecionado_livro,
     )
     return resposta, (400 if erros else 200)
 
@@ -55,43 +44,13 @@ def consultar():
 @emprestimos_bp.route("/novo", methods=["GET", "POST"])
 def cadastrar():
     if request.method == "GET":
-        id_livro = request.args.get("id_livro", type=int)
-        id_usuario = request.args.get("id_usuario", type=int)
-        termo = request.args.get("q", "").strip()
-        termo_usuario = request.args.get("q_usuario", "").strip()
-        livro = livros_repository.obter(id_livro) if id_livro and not termo else None
-        if livro:
-            termo = livro["titulo"]
-        usuario = usuarios_repository.obter(id_usuario) if id_usuario and not termo_usuario else None
-        if usuario:
-            termo_usuario = usuario["nome"]
         return _formulario(
-            selecionado_usuario=str(id_usuario or ""), selecionado_livro=str(id_livro or ""),
-            termo=termo, termo_usuario=termo_usuario,
+            id_usuario=request.args.get("id_usuario", type=int),
+            id_livro=request.args.get("id_livro", type=int),
         )
 
     id_usuario = request.form.get("id_usuario", type=int)
     id_livro = request.form.get("id_livro", type=int)
-    contexto = {
-        "selecionado_usuario": str(id_usuario or ""),
-        "selecionado_livro": str(id_livro or ""),
-        "termo": request.form.get("q", "").strip(),
-        "termo_usuario": request.form.get("q_usuario", "").strip(),
-        "ver_usuarios": request.form.get("ver_usuarios") == "1",
-        "ver_livros": request.form.get("ver_livros") == "1",
-    }
-
-    acao = request.form.get("acao", "")
-    if acao:
-        if acao == "buscar_usuario":
-            contexto["ver_usuarios"] = True
-        elif acao == "buscar_livro":
-            contexto["ver_livros"] = True
-        elif acao == "limpar_usuario":
-            contexto["termo_usuario"] = ""
-        elif acao == "limpar_livro":
-            contexto["termo"] = ""
-        return _formulario(**contexto)
 
     erros = {}
     if not id_usuario:
@@ -99,16 +58,16 @@ def cadastrar():
     if not id_livro:
         erros["id_livro"] = "Selecione o livro."
     if erros:
-        return _formulario(erros, **contexto)
+        return _formulario(erros, id_usuario, id_livro)
 
     try:
         _, prevista = repository.criar(id_usuario, id_livro)
     except repository.LivroIndisponivel:
         erros["id_livro"] = "Este livro não tem exemplares disponíveis no momento."
-        return _formulario(erros, **contexto)
+        return _formulario(erros, id_usuario, id_livro)
     except repository.UsuarioComPendencia:
         erros["id_usuario"] = "Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro."
-        return _formulario(erros, **contexto)
+        return _formulario(erros, id_usuario, id_livro)
 
     flash(f"Empréstimo registrado. Devolução prevista para {prevista.strftime('%d/%m/%Y')}.", "success")
     return redirect(url_for("emprestimos.cadastrar"))

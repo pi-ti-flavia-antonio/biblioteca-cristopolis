@@ -79,6 +79,17 @@ def listar(termo="", pagina=1):
     ).fetchall()
 
 
+def sugerir(termo, limite=6):
+    """Poucos livros que combinam com o que está sendo digitado, para as sugestões."""
+    filtro, parametros = _filtro_busca(termo)
+    if not filtro:
+        return []
+    return get_db().execute(
+        f"{_SELECT_LIVROS} {filtro} ORDER BY normalizar(l.titulo), l.id_livro LIMIT :limite",
+        {**parametros, "limite": limite},
+    ).fetchall()
+
+
 def obter(id_livro):
     return get_db().execute(f"{_SELECT_LIVROS} WHERE l.id_livro = ?", (id_livro,)).fetchone()
 

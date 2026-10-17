@@ -14,18 +14,6 @@ def test_historico_vazio_mostra_mensagem(client):
     assert "Nenhum empréstimo registrado ainda." in html(resposta)
 
 
-def test_formulario_lista_usuarios_e_livros_ao_clicar_em_buscar(post, criar_usuario, criar_livro):
-    criar_usuario("Maria Oliveira", cpf="12345678909")
-    criar_livro("Dom Casmurro", quantidade=2)
-
-    usuarios = html(post("/emprestimos/novo", {"acao": "buscar_usuario"}))
-    livros = html(post("/emprestimos/novo", {"acao": "buscar_livro"}))
-
-    assert "Maria Oliveira" in usuarios
-    assert "Dom Casmurro" in livros
-    assert "2 disponíveis" in livros
-
-
 def test_realizar_emprestimo_valido(client, post, criar_usuario, criar_livro):
     id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
     id_livro = criar_livro("Dom Casmurro", quantidade=1)
@@ -90,15 +78,6 @@ def test_usuario_pode_pegar_outro_livro_apos_devolucao(client, post, criar_usuar
     resposta = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": novo_livro})
 
     assert resposta.status_code == 302
-
-
-def test_livro_esgotado_aparece_desabilitado_no_formulario(post, criar_livro, registrar_emprestimo):
-    id_livro = criar_livro("Dom Casmurro", quantidade=1)
-    registrar_emprestimo(id_livro)
-
-    pagina = html(post("/emprestimos/novo", {"acao": "buscar_livro"}))
-
-    assert f'value="{id_livro}" disabled' in pagina
 
 
 def test_historico_marca_atraso_de_emprestimo_vencido(app, client, criar_usuario, criar_livro):
@@ -205,179 +184,6 @@ def test_formulario_tem_link_para_cadastrar_livro_faltante(client, criar_livro):
     assert 'href="/livros/novo?voltar=emprestimo"' in pagina
 
 
-def test_id_livro_na_query_pre_seleciona_o_livro(client, criar_livro):
-    id_livro = criar_livro("Dom Casmurro", quantidade=1)
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"id_livro": id_livro}))
-
-    assert f'value="{id_livro}" checked' in pagina
-
-
-def test_busca_de_livro_filtra_por_titulo_autor_ou_isbn(client, criar_livro):
-    criar_livro("Dom Casmurro", "Machado de Assis", isbn="9788535902775")
-    criar_livro("1984", "George Orwell")
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q": "casmurro"}))
-    assert "Dom Casmurro" in pagina
-    assert "1984" not in pagina
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q": "orwell"}))
-    assert "1984" in pagina
-    assert "Dom Casmurro" not in pagina
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q": "9788535902775"}))
-    assert "Dom Casmurro" in pagina
-    assert "1984" not in pagina
-
-
-def test_busca_de_livro_sem_resultado_mostra_mensagem(client, criar_livro):
-    criar_livro("Dom Casmurro")
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q": "xyz"}))
-
-    assert 'Nenhum livro encontrado para "xyz".' in pagina
-
-
-def test_busca_de_livro_preserva_termo_apos_erro_de_validacao(post, criar_livro):
-    criar_livro("Dom Casmurro", quantidade=1)
-
-    resposta = post("/emprestimos/novo", {"id_usuario": "", "id_livro": "", "q": "casmurro"})
-    pagina = html(resposta)
-
-    assert resposta.status_code == 400
-    assert 'value="casmurro"' in pagina
-    assert "Dom Casmurro" in pagina
-
-
-def test_busca_de_livro_mostra_caixa_com_rolagem_e_opcoes_clicaveis(client, criar_livro):
-    id_livro = criar_livro("Dom Casmurro", quantidade=1)
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q": "cas"}))
-
-    assert f'<input type="radio" name="id_livro" value="{id_livro}"' in pagina
-    assert "radio-list--scroll" in pagina
-
-
-def test_antes_de_buscar_nao_lista_nada_e_orienta_a_pesquisar(client, criar_livro, criar_usuario):
-    criar_livro("Dom Casmurro", quantidade=1)
-    criar_usuario("Maria Oliveira", cpf="12345678909")
-
-    pagina = html(client.get("/emprestimos/novo"))
-
-    assert 'type="radio"' not in pagina
-    assert "clique em Buscar para escolher o usuário" in pagina
-    assert "clique em Buscar para escolher o livro" in pagina
-
-
-def test_buscar_sem_digitar_nada_lista_todas_as_opcoes(post, criar_livro):
-    criar_livro("Dom Casmurro", quantidade=1)
-    criar_livro("1984", quantidade=1)
-
-    pagina = html(post("/emprestimos/novo", {"acao": "buscar_livro", "q": ""}))
-
-    assert "Dom Casmurro" in pagina
-    assert "1984" in pagina
-
-
-def test_buscar_nao_registra_emprestimo(post, consulta, criar_usuario, criar_livro):
-    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
-    id_livro = criar_livro("Dom Casmurro", quantidade=1)
-
-    resposta = post("/emprestimos/novo", {"acao": "buscar_livro", "id_usuario": id_usuario, "id_livro": id_livro})
-
-    assert resposta.status_code == 200
-    assert consulta("SELECT id_emprestimo FROM emprestimo") == []
-
-
-def test_buscar_livro_mantem_o_usuario_ja_escolhido(post, criar_usuario, criar_livro):
-    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
-    criar_livro("Dom Casmurro", quantidade=1)
-
-    pagina = html(post("/emprestimos/novo", {
-        "acao": "buscar_livro", "q": "dom", "id_usuario": id_usuario,
-        "q_usuario": "maria", "ver_usuarios": "1",
-    }))
-
-    assert f'name="id_usuario" value="{id_usuario}" checked' in pagina
-    assert "Dom Casmurro" in pagina
-
-
-def test_enter_no_campo_de_busca_so_atualiza_e_nao_registra(post, consulta, criar_usuario, criar_livro):
-    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
-    id_livro = criar_livro("Dom Casmurro", quantidade=1)
-
-    resposta = post("/emprestimos/novo", {
-        "acao": "atualizar", "q": "dom", "id_usuario": id_usuario, "id_livro": id_livro,
-    })
-
-    assert resposta.status_code == 200
-    assert consulta("SELECT id_emprestimo FROM emprestimo") == []
-
-
-def test_limpar_busca_de_livro_zera_o_termo_e_mantem_a_lista(post, criar_livro):
-    criar_livro("Dom Casmurro", quantidade=1)
-    criar_livro("1984", quantidade=1)
-
-    pagina = html(post("/emprestimos/novo", {"acao": "limpar_livro", "q": "dom", "ver_livros": "1"}))
-
-    assert 'name="q" value=""' in pagina
-    assert "1984" in pagina
-
-
-def test_erro_de_validacao_mantem_as_listas_abertas(post, criar_livro):
-    criar_livro("Dom Casmurro", quantidade=1)
-
-    pagina = html(post("/emprestimos/novo", {"id_usuario": "", "id_livro": "", "q": "dom", "ver_livros": "1"}))
-
-    assert "Selecione o livro." in pagina
-    assert "Dom Casmurro" in pagina
-
-
-def test_busca_de_usuario_encontra_nome_com_ou_sem_acentuacao(client, criar_usuario):
-    criar_usuario("José Antônio", cpf="12345678909")
-    criar_usuario("Carlos Souza", cpf="52998224725")
-
-    for termo in ["jose antonio", "JOSÉ ANTÔNIO", "antonio", "ANTÔNIO"]:
-        pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": termo}))
-        assert "José Antônio" in pagina, termo
-        assert "Carlos Souza" not in pagina, termo
-
-
-def test_busca_de_usuario_encontra_cpf_com_ou_sem_pontuacao(client, criar_usuario):
-    criar_usuario("José Antônio", cpf="12345678909")
-    criar_usuario("Carlos Souza", cpf="52998224725")
-
-    for termo in ["529.982.247-25", "52998224725", "529 982 247 25"]:
-        pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": termo}))
-        assert "Carlos Souza" in pagina, termo
-        assert "José Antônio" not in pagina, termo
-
-
-def test_busca_de_usuario_sem_resultado_mostra_mensagem(client, criar_usuario):
-    criar_usuario("Maria Oliveira", cpf="12345678909")
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "xyz"}))
-
-    assert 'Nenhum usuário encontrado para "xyz".' in pagina
-
-
-def test_busca_de_usuario_mostra_opcoes_clicaveis_em_vez_de_lista_suspensa(client, criar_usuario):
-    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
-
-    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "maria"}))
-
-    assert f'<input type="radio" name="id_usuario" value="{id_usuario}"' in pagina
-    assert '<select id="id_usuario"' not in pagina
-
-
-def test_formulario_tem_link_para_cadastrar_usuario_faltante(client):
-    pagina = html(client.get("/emprestimos/novo", query_string={"q_usuario": "danielle"}))
-
-    assert 'Nenhum usuário encontrado para "danielle".' in pagina
-    assert "O usuário que você procura não está cadastrado?" in pagina
-    assert 'href="/usuarios/novo?voltar=emprestimo"' in pagina
-
-
 def test_menu_lateral_abre_direto_em_realizar_emprestimo(client):
     pagina = html(client.get("/"))
 
@@ -391,3 +197,147 @@ def test_abas_seguem_a_ordem_realizar_historico_reservas(client):
     historico = pagina.index(">Histórico de empréstimos</a>")
     reservas = pagina.index(">Reservas</a>")
     assert realizar < historico < reservas
+
+
+
+def _json(resposta):
+    return resposta.get_json()["itens"]
+
+
+def test_formulario_tem_dois_campos_de_busca_com_sugestoes(client):
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert pagina.count('role="combobox"') == 2
+    assert 'data-url="/usuarios/sugestoes"' in pagina
+    assert 'data-url="/livros/sugestoes"' in pagina
+    assert 'src="/static/js/busca.js"' in pagina
+    assert 'name="id_usuario" value=""' in pagina
+    assert 'name="id_livro" value=""' in pagina
+
+
+def test_formulario_nao_tem_mais_botao_buscar(client):
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert 'name="acao"' not in pagina
+    assert ">Buscar<" not in pagina
+
+
+def test_sugestoes_de_livros_ignoram_acento_e_caixa(client, criar_livro):
+    criar_livro("O Pequeno Príncipe", "Antoine de Saint-Exupéry")
+    criar_livro("1984", "George Orwell")
+
+    for termo in ["principe", "PRÍNCIPE", "pequeno pri"]:
+        itens = _json(client.get("/livros/sugestoes", query_string={"q": termo}))
+        assert [i["titulo"] for i in itens] == ["O Pequeno Príncipe"], termo
+
+
+def test_sugestoes_de_livros_acham_por_autor_e_por_isbn(client, criar_livro):
+    criar_livro("Dom Casmurro", "Machado de Assis", isbn="9788535902775")
+    criar_livro("1984", "George Orwell")
+
+    por_autor = _json(client.get("/livros/sugestoes", query_string={"q": "machado"}))
+    por_isbn = _json(client.get("/livros/sugestoes", query_string={"q": "978-85-359"}))
+
+    assert [i["titulo"] for i in por_autor] == ["Dom Casmurro"]
+    assert [i["titulo"] for i in por_isbn] == ["Dom Casmurro"]
+
+
+def test_sugestoes_de_livros_informam_a_disponibilidade(client, criar_livro, registrar_emprestimo):
+    id_esgotado = criar_livro("Quincas Borba", quantidade=1)
+    registrar_emprestimo(id_esgotado)
+    criar_livro("Quincas Borba Dois", quantidade=3)
+
+    itens = {i["titulo"]: i for i in _json(client.get("/livros/sugestoes", query_string={"q": "quincas"}))}
+
+    assert itens["Quincas Borba"]["disponiveis"] == 0
+    assert itens["Quincas Borba Dois"]["disponiveis"] == 3
+    assert set(itens["Quincas Borba"]) == {"id", "titulo", "subtitulo", "disponiveis"}
+
+
+def test_sugestoes_sem_termo_voltam_vazias(client, criar_livro, criar_usuario):
+    criar_livro("Dom Casmurro")
+    criar_usuario("Maria Oliveira", cpf="12345678909")
+
+    assert _json(client.get("/livros/sugestoes")) == []
+    assert _json(client.get("/livros/sugestoes", query_string={"q": "   "})) == []
+    assert _json(client.get("/usuarios/sugestoes")) == []
+
+
+def test_sugestoes_mostram_no_maximo_seis(client, criar_livro):
+    for numero in range(10):
+        criar_livro(f"Livro {numero}")
+
+    assert len(_json(client.get("/livros/sugestoes", query_string={"q": "livro"}))) == 6
+
+
+def test_sugestoes_sem_resultado_voltam_vazias(client, criar_livro):
+    criar_livro("Dom Casmurro")
+
+    assert _json(client.get("/livros/sugestoes", query_string={"q": "xyz"})) == []
+
+
+def test_sugestoes_de_usuarios_ignoram_acento_e_caixa(client, criar_usuario):
+    criar_usuario("José Antônio", cpf="12345678909")
+    criar_usuario("Carlos Souza", cpf="52998224725")
+
+    for termo in ["jose antonio", "JOSÉ ANTÔNIO", "antonio"]:
+        itens = _json(client.get("/usuarios/sugestoes", query_string={"q": termo}))
+        assert [i["titulo"] for i in itens] == ["José Antônio"], termo
+
+
+def test_sugestoes_de_usuarios_acham_cpf_com_ou_sem_pontuacao(client, criar_usuario):
+    criar_usuario("José Antônio", cpf="12345678909")
+    criar_usuario("Carlos Souza", cpf="52998224725")
+
+    for termo in ["529.982.247-25", "52998224725", "529 982 247 25", "52998"]:
+        itens = _json(client.get("/usuarios/sugestoes", query_string={"q": termo}))
+        assert [i["titulo"] for i in itens] == ["Carlos Souza"], termo
+
+
+def test_sugestoes_de_usuarios_mostram_so_o_cpf_mascarado(client, criar_usuario):
+    criar_usuario("Carlos Souza", cpf="52998224725")
+
+    resposta = client.get("/usuarios/sugestoes", query_string={"q": "carlos"})
+
+    assert _json(resposta)[0]["subtitulo"] == "CPF ***.***.***-25"
+    assert "52998224725" not in resposta.get_data(as_text=True)
+    assert "529.982" not in resposta.get_data(as_text=True)
+
+
+def test_formulario_com_usuario_e_livro_escolhidos_mostra_a_faixa(client, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", "Machado de Assis")
+
+    pagina = html(client.get("/emprestimos/novo", query_string={"id_usuario": id_usuario, "id_livro": id_livro}))
+
+    assert f'name="id_usuario" value="{id_usuario}"' in pagina
+    assert f'name="id_livro" value="{id_livro}"' in pagina
+    assert "Maria Oliveira (***.***.***-09)" in pagina
+    assert "12345678909" not in pagina and "123.456.789-09" not in pagina
+    assert "Dom Casmurro, de Machado de Assis" in pagina
+
+
+def test_erro_de_validacao_mantem_o_que_ja_foi_escolhido(post, criar_usuario):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+
+    resposta = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": ""})
+    pagina = html(resposta)
+
+    assert resposta.status_code == 400
+    assert "Selecione o livro." in pagina
+    assert f'name="id_usuario" value="{id_usuario}"' in pagina
+    assert "Maria Oliveira" in pagina
+
+
+def test_formulario_tem_link_para_cadastrar_usuario_faltante(client):
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert "O usuário que você procura não está cadastrado?" in pagina
+    assert 'href="/usuarios/novo?voltar=emprestimo"' in pagina
+
+
+def test_arquivo_de_busca_e_servido(client):
+    resposta = client.get("/static/js/busca.js")
+
+    assert resposta.status_code == 200
+    assert b"role=option" in resposta.data

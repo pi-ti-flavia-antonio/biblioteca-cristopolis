@@ -1,6 +1,6 @@
 import math
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 
 from . import isbn_lookup, repository, validacao
 from ..texto import limpar_isbn
@@ -96,6 +96,20 @@ def consultar():
         inicio=(pagina - 1) * repository.POR_PAGINA + 1 if total else 0,
         fim=min(pagina * repository.POR_PAGINA, total),
     )
+
+
+@livros_bp.get("/sugestoes")
+def sugestoes():
+    termo = request.args.get("q", "").strip()
+    return jsonify(itens=[
+        {
+            "id": livro["id_livro"],
+            "titulo": livro["titulo"],
+            "subtitulo": livro["autor"],
+            "disponiveis": livro["quantidade_disponivel"],
+        }
+        for livro in repository.sugerir(termo)
+    ])
 
 
 @livros_bp.route("/novo", methods=["GET", "POST"])

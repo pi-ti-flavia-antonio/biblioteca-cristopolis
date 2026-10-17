@@ -25,7 +25,8 @@ def test_cadastrar_usuario_valido(client, post):
 
     pagina = html(client.get("/usuarios"))
     assert "Maria Oliveira" in pagina
-    assert "123.456.789-09" in pagina
+    assert "***.***.***-09" in pagina
+    assert "123.456.789-09" not in pagina
     assert "(67) 99999-0000" in pagina
     assert "aluno" in pagina
 
@@ -75,7 +76,8 @@ def test_cpf_duplicado_e_recusado(post, consulta):
     resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "nome": "Outra Pessoa"})
 
     assert resposta.status_code == 400
-    assert "Já existe um usuário cadastrado com este CPF: Maria Oliveira" in html(resposta)
+    assert "Já existe um usuário cadastrado com este CPF." in html(resposta)
+    assert "com este CPF:" not in html(resposta)
     assert len(consulta("SELECT id_usuario FROM usuario")) == 1
 
 
@@ -243,5 +245,5 @@ def test_cadastro_vindo_do_emprestimo_redireciona_com_usuario_selecionado(client
 
     id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
     pagina = html(client.get(resposta.headers["Location"]))
-    assert f'name="id_usuario" value="{id_usuario}" checked' in pagina
+    assert f'name="id_usuario" value="{id_usuario}"' in pagina
     assert "Maria Oliveira" in pagina

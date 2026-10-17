@@ -8,7 +8,7 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 
 - **Livros:** cadastro, edição, exclusão e consulta por título, autor ou ISBN (sem diferenciar acentos nem maiúsculas). Ao digitar o ISBN, o botão "Buscar dados" preenche título, autor e ano pela Open Library, com o Google Books como segunda tentativa. Sem internet, o cadastro continua manual.
 - **Usuários:** cadastro, edição, exclusão e busca por nome ou CPF (com ou sem pontuação). O CPF é validado pelos dígitos verificadores.
-- **Empréstimos:** o usuário e o livro são escolhidos por busca, com lista de opções. O prazo padrão é de 30 dias, e o sistema bloqueia um novo empréstimo para quem ainda está com um livro. Se o usuário ou o livro não existir, há um atalho para cadastrá-lo e voltar ao empréstimo.
+- **Empréstimos:** o usuário e o livro são escolhidos em campos de busca que mostram sugestões enquanto se digita, ignorando acentos. O prazo padrão é de 30 dias, e o sistema bloqueia um novo empréstimo para quem ainda está com um livro. Se o usuário ou o livro não existir, há um atalho para cadastrá-lo e voltar ao empréstimo.
 - **Reservas:** reserva de livros sem exemplar disponível, com fila por ordem de chegada. Quando um exemplar volta, só a reserva mais antiga é sinalizada para retirada.
 - **Devoluções:** registro da devolução, com atualização automática do estoque e aviso de atraso.
 - **Relatórios:** empréstimos por período (de até 1 ano), com aviso de geração e exportação em PDF, e lista de empréstimos em atraso.
@@ -19,7 +19,7 @@ Ainda não implementados: backup do banco para a nuvem e login de funcionários.
 ## Tecnologias
 
 - **Backend:** Python com Flask
-- **Interface:** HTML gerado com templates Jinja e CSS responsivo. O único JavaScript é um pequeno trecho na tela de relatórios, que mostra o aviso de geração do PDF
+- **Interface:** HTML gerado com templates Jinja e CSS responsivo. O JavaScript se limita a dois trechos: as sugestões enquanto se digita na tela de empréstimo e o aviso de geração do PDF na tela de relatórios
 - **Banco de dados:** SQLite, salvo localmente em `data/biblioteca.db`
 - **Janela do sistema:** pywebview, que exibe o sistema como programa, sem barra de endereço
 - **Bibliotecas auxiliares:** requests (busca por ISBN) e reportlab (geração do PDF)
@@ -30,7 +30,7 @@ Ainda não implementados: backup do banco para a nuvem e login de funcionários.
 - **Uso em computador:** o sistema é pensado para o computador da biblioteca, não para celulares ou tablets. O CSS responsivo ajusta o layout a monitores, notebooks e à janela redimensionada (mínimo de 900 x 600).
 - **Regras de negócio no servidor:** disponibilidade, atraso e bloqueio de um segundo empréstimo são calculados em um só lugar. Uma versão com script no navegador repetia essas regras e foi removida.
 - **Busca de dados por ISBN com APIs REST, opcional:** o protocolo Z39.50 exige uma biblioteca em C e depende de servidores públicos instáveis. Sem internet, o cadastro continua manual.
-- **Busca com lista de opções no empréstimo:** a lista suspensa com todos os usuários e livros ficava difícil de usar com um acervo grande.
+- **Busca com sugestões ao digitar no empréstimo:** a lista suspensa com todos os usuários e livros ficava difícil de usar com um acervo grande. As sugestões vêm do servidor, que continua sendo a única fonte das regras, e o CPF aparece mascarado.
 - **Reservas em fila por ordem de chegada:** quando um exemplar volta, só a reserva mais antiga é sinalizada.
 - **Acessibilidade:** HTML semântico (`nav`, `header`, `main`, um `h1` por página), campos com rótulo, avisos com `role`, item atual do menu marcado e link para pular ao conteúdo.
 

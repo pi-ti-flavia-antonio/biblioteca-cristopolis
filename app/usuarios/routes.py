@@ -1,8 +1,9 @@
 import math
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 
 from . import repository, validacao
+from ..texto import mascarar_cpf
 
 usuarios_bp = Blueprint("usuarios", __name__, url_prefix="/usuarios")
 
@@ -17,7 +18,7 @@ def _checar_regras_do_banco(dados, erros, usuario_atual=None):
             and existente["id_usuario"] == usuario_atual["id_usuario"]
         )
         if existente and not mesmo_usuario:
-            erros["cpf"] = f"Já existe um usuário cadastrado com este CPF:."
+            erros["cpf"] = "Já existe um usuário cadastrado com este CPF."
 
 
 def _formulario(valores, erros, aba=None, usuario_id=None, voltar=""):
@@ -58,6 +59,19 @@ def consultar():
         inicio=(pagina - 1) * repository.POR_PAGINA + 1 if total else 0,
         fim=min(pagina * repository.POR_PAGINA, total),
     )
+
+
+@usuarios_bp.get("/sugestoes")
+def sugestoes():
+    termo = request.args.get("q", "").strip()
+    return jsonify(itens=[
+        {
+            "id": usuario["id_usuario"],
+            "titulo": usuario["nome"],
+            "subtitulo": f"CPF {mascarar_cpf(usuario['cpf'])}" if usuario["cpf"] else "",
+        }
+        for usuario in repository.sugerir(termo)
+    ])
 
 
 @usuarios_bp.route("/novo", methods=["GET", "POST"])
