@@ -375,3 +375,30 @@ def test_pagina_tem_link_para_pular_ao_conteudo(client):
 
     assert 'class="skip-link" href="#conteudo"' in pagina
     assert 'id="conteudo"' in pagina
+
+
+def test_cadastro_novo_abre_com_a_quantidade_em_branco(client):
+    pagina = html(client.get("/livros/novo"))
+
+    assert 'id="quantidade" name="quantidade" type="number" value=""' in pagina
+
+
+def test_quantidade_continua_obrigatoria_no_cadastro(client, post, consulta):
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "quantidade": ""})
+
+    assert resposta.status_code == 400
+    assert "Informe a quantidade de exemplares." in html(resposta)
+    assert consulta("SELECT id_livro FROM livro") == []
+
+
+def test_erro_em_outro_campo_nao_apaga_a_quantidade_digitada(client, post):
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "titulo": "", "quantidade": "4"})
+
+    assert resposta.status_code == 400
+    assert 'name="quantidade" type="number" value="4"' in html(resposta)
+
+
+def test_edicao_continua_mostrando_a_quantidade_do_livro(client, criar_livro):
+    id_livro = criar_livro("Dom Casmurro", quantidade=7)
+
+    assert 'name="quantidade" type="number" value="7"' in html(client.get(f"/livros/{id_livro}/editar"))

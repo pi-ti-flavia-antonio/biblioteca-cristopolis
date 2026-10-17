@@ -13,7 +13,7 @@ ANO_MIN = 1000
 
 
 def valores_iniciais():
-    return {**{campo: "" for campo in CAMPOS}, "quantidade": "1"}
+    return {campo: "" for campo in CAMPOS}
 
 
 def valores_do_formulario(form):
