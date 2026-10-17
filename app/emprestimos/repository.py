@@ -138,6 +138,10 @@ def registrar_devolucao(id_emprestimo):
             "UPDATE emprestimo SET status = 'devolvido', data_devolucao_real = ? WHERE id_emprestimo = ?",
             (hoje.isoformat(), id_emprestimo),
         )
+        db.execute(
+            "UPDATE reserva SET aviso_visto = 0 WHERE id_livro = ? AND status = 'ativa'",
+            (emprestimo["id_livro"],),
+        )
 
     return {
         "id_livro": emprestimo["id_livro"],

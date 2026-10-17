@@ -66,15 +66,92 @@ def test_aviso_lista_so_a_pessoa_mais_antiga_da_fila(client, post, criar_usuario
     assert "Carlos Souza" not in aviso
 
 
-def test_contador_aparece_na_aba_e_no_menu_em_todas_as_paginas_de_emprestimos(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+def test_contador_aparece_na_aba_e_no_menu_enquanto_a_reserva_nao_foi_vista(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
     _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
 
-    for rota in ["/emprestimos/novo", "/emprestimos", "/emprestimos/reservas"]:
+    for rota in ["/emprestimos/novo", "/emprestimos", "/livros"]:
         pagina = html(client.get(rota))
-        assert pagina.count('class="contagem"') == 2, rota
         assert 'aria-label="1 livro disponível para retirada"' in pagina, rota
+    assert html(client.get("/emprestimos")).count('class="contagem"') == 2
 
-    assert 'class="contagem"' in html(client.get("/livros"))
+
+def test_abrir_a_aba_reservas_tira_o_ponto_vermelho_mas_mantem_o_aviso(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
+
+    pagina = html(client.get("/emprestimos/reservas"))
+
+    assert 'class="contagem"' not in pagina
+    assert "1 livro disponível para retirada" in _aviso(pagina)
+    assert "Maria Oliveira" in _aviso(pagina)
+
+
+def test_ponto_vermelho_continua_apagado_nas_outras_telas_depois_de_visto(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
+    client.get("/emprestimos/reservas")
+
+    for rota in ["/emprestimos/novo", "/emprestimos", "/livros", "/devolucoes"]:
+        assert 'class="contagem"' not in html(client.get(rota)), rota
+    assert "aviso-reservas-titulo" in html(client.get("/emprestimos/reservas"))
+
+
+def test_aviso_amarelo_continua_em_visitas_seguintes(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
+
+    for _ in range(3):
+        assert "Avisar por WhatsApp" in html(client.get("/emprestimos/reservas"))
+
+
+def test_outro_livro_reservado_que_volta_acende_o_ponto_de_novo(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
+    client.get("/emprestimos/reservas")  # viu o primeiro aviso
+
+    id_livro2 = criar_livro("Dom Quixote", quantidade=1)
+    registrar_emprestimo(id_livro2)
+    post("/emprestimos/reservas", {"id_usuario": criar_usuario("Carlos Souza", cpf="52998224725"), "id_livro": id_livro2})
+    id_emprestimo2 = consulta("SELECT id_emprestimo FROM emprestimo WHERE id_livro = ?", (id_livro2,))[0]["id_emprestimo"]
+    post(f"/devolucoes/{id_emprestimo2}/registrar")
+
+    assert 'aria-label="1 livro disponível para retirada"' in html(client.get("/emprestimos"))
+    pagina = html(client.get("/emprestimos/reservas"))
+    assert "2 livros disponíveis para retirada" in _aviso(pagina)
+    assert 'class="contagem"' not in pagina
+
+
+def test_o_mesmo_livro_que_volta_de_novo_acende_o_ponto_outra_vez(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    id_usuario, id_livro = _devolver_com_reserva(post, criar_usuario, criar_livro, registrar_emprestimo, consulta)
+    client.get("/emprestimos/reservas")  # viu o aviso
+
+    registrar_emprestimo(id_livro)  # alguem pegou o exemplar antes da retirada
+    id_emprestimo = consulta("SELECT id_emprestimo FROM emprestimo WHERE status = 'ativo'")[0]["id_emprestimo"]
+    post(f"/devolucoes/{id_emprestimo}/registrar")
+
+    assert 'class="contagem"' in html(client.get("/emprestimos"))
+
+
+def test_banco_antigo_sem_a_coluna_e_atualizado_sem_perder_reservas(tmp_path):
+    import sqlite3
+
+    from app import create_app
+
+    caminho = tmp_path / "antigo.db"
+    app = create_app({"TESTING": True, "DATABASE": caminho, "SECRET_KEY": "x"})
+    with app.app_context():
+        from app.database import get_db
+        db = get_db()
+        with db:
+            db.execute("INSERT INTO usuario (nome) VALUES ('Maria')")
+            db.execute("INSERT INTO livro (titulo, autor, quantidade_total) VALUES ('Dom Casmurro', 'Machado', 1)")
+            db.execute("INSERT INTO reserva (data_reserva, status, id_usuario, id_livro) VALUES ('2026-10-01', 'ativa', 1, 1)")
+            db.execute("ALTER TABLE reserva DROP COLUMN aviso_visto")
+
+    app2 = create_app({"TESTING": True, "DATABASE": caminho, "SECRET_KEY": "x"})
+    with app2.app_context():
+        from app.database import get_db
+        colunas = {c["name"] for c in get_db().execute("PRAGMA table_info(reserva)")}
+        reservas = get_db().execute("SELECT id_reserva, aviso_visto FROM reserva").fetchall()
+
+    assert "aviso_visto" in colunas
+    assert [(r["id_reserva"], r["aviso_visto"]) for r in reservas] == [(1, 0)]
 
 
 def test_aviso_some_depois_que_a_retirada_e_registrada(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):

@@ -1,5 +1,5 @@
 <nav class="tabs" aria-label="Seções de empréstimos">
     <a href="{{ url_for('emprestimos.cadastrar') }}" class="tabs__item{% if aba == 'cadastrar' %} is-active{% endif %}"{% if aba == 'cadastrar' %} aria-current="page"{% endif %}>Realizar empréstimo</a>
     <a href="{{ url_for('emprestimos.consultar') }}" class="tabs__item{% if aba == 'consultar' %} is-active{% endif %}"{% if aba == 'consultar' %} aria-current="page"{% endif %}>Histórico de empréstimos</a>
-    <a href="{{ url_for('emprestimos.reservas') }}" class="tabs__item{% if aba == 'reservas' %} is-active{% endif %}"{% if aba == 'reservas' %} aria-current="page"{% endif %}>Reservas{% set prontas_n = reservas_prontas() %}{% if prontas_n %} <span class="contagem" aria-label="{{ prontas_n }} {{ 'livro disponível' if prontas_n == 1 else 'livros disponíveis' }} para retirada">{{ prontas_n }}</span>{% endif %}</a>
+    <a href="{{ url_for('emprestimos.reservas') }}" class="tabs__item{% if aba == 'reservas' %} is-active{% endif %}"{% if aba == 'reservas' %} aria-current="page"{% endif %}>Reservas{% set prontas_n = reservas_novas() %}{% if prontas_n %} <span class="contagem" aria-label="{{ prontas_n }} {{ 'livro disponível' if prontas_n == 1 else 'livros disponíveis' }} para retirada">{{ prontas_n }}</span>{% endif %}</a>
 </nav>

@@ -82,6 +82,7 @@ def cadastrar():
 
 def _reservas(erros=None, id_usuario=None, id_livro=None):
     reservas = reservas_repository.listar_ativas()
+    reservas_repository.marcar_avisos_como_vistos()
     resposta = render_template(
         "emprestimos/reservas.html",
         aba="reservas",

@@ -38,7 +38,7 @@ def create_app(config=None):
     from .routes import main_bp
     from .usuarios import usuarios_bp
 
-    app.context_processor(lambda: {"reservas_prontas": reservas_repository.contar_prontas})
+    app.context_processor(lambda: {"reservas_novas": reservas_repository.contar_novas})
     app.register_blueprint(main_bp)
     app.register_blueprint(livros_bp)
     app.register_blueprint(usuarios_bp)

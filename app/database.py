@@ -24,8 +24,18 @@ def close_db(_erro=None):
         conexao.close()
 
 
+def _atualizar_bancos_antigos(db):
+    """Bancos criados antes de uma coluna existir ganham a coluna, sem perder dados."""
+    colunas = {linha["name"] for linha in db.execute("PRAGMA table_info(reserva)")}
+    if "aviso_visto" not in colunas:
+        with db:
+            db.execute("ALTER TABLE reserva ADD COLUMN aviso_visto INTEGER NOT NULL DEFAULT 0")
+
+
 def init_db():
-    get_db().executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    db = get_db()
+    db.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    _atualizar_bancos_antigos(db)
 
 
 def init_app(app):

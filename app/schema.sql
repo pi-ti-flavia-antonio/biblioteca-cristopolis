@@ -52,7 +52,8 @@ CREATE TABLE IF NOT EXISTS reserva (
     data_reserva TEXT    NOT NULL,
     status       TEXT    NOT NULL DEFAULT 'ativa' CHECK (status IN ('ativa', 'cancelada', 'concluida')),
     id_usuario   INTEGER NOT NULL REFERENCES usuario (id_usuario),
-    id_livro     INTEGER NOT NULL REFERENCES livro (id_livro) ON DELETE RESTRICT
+    id_livro     INTEGER NOT NULL REFERENCES livro (id_livro) ON DELETE RESTRICT,
+    aviso_visto  INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS ix_reserva_livro_status ON reserva (id_livro, status);

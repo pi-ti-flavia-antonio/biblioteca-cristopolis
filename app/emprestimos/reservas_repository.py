@@ -7,7 +7,7 @@ from .repository import criar as criar_emprestimo
 from .repository import livro_disponivel
 
 _SELECT_RESERVAS = """
-    SELECT r.id_reserva, r.data_reserva, r.status, r.id_usuario, r.id_livro,
+    SELECT r.id_reserva, r.data_reserva, r.status, r.id_usuario, r.id_livro, r.aviso_visto,
            l.titulo AS livro_titulo, l.autor AS livro_autor,
            u.nome AS usuario_nome, u.telefone AS usuario_telefone
       FROM reserva r
@@ -65,8 +65,20 @@ def listar_prontas():
     return [r for r in listar_ativas() if r["disponivel_para_retirada"]]
 
 
-def contar_prontas():
-    return len(listar_prontas())
+def contar_novas():
+    """Reservas prontas que a bibliotecária ainda não viu na aba Reservas."""
+    return sum(1 for r in listar_prontas() if not r["aviso_visto"])
+
+
+def marcar_avisos_como_vistos():
+    ids = [r["id_reserva"] for r in listar_prontas() if not r["aviso_visto"]]
+    if not ids:
+        return
+    db = get_db()
+    with db:
+        db.execute(
+            f"UPDATE reserva SET aviso_visto = 1 WHERE id_reserva IN ({','.join('?' * len(ids))})", ids
+        )
 
 
 def contar_ativas():
