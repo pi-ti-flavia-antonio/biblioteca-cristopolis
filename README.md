@@ -68,3 +68,22 @@ Os testes usam um banco temporário, então não mexem nos dados de `data/`.
 - `app/templates/`: páginas HTML (`base.html` tem o menu lateral, as demais herdam dele)
 - `app/static/css/style.css`: estilos do sistema, com ajustes para telas menores
 - `tests/`: testes automatizados de cada módulo
+
+
+## Backup e recuperação
+
+O sistema possui uma rotina de backup automático do banco de
+dados SQLite, com criptografia Fernet e armazenamento no Google Drive.
+
+A implementação inclui:
+- Criação e verificação de backups.
+- Criptografia dos arquivos.
+- Integração com a Google Drive API.
+- Reenvio após falhas de conexão.
+- Retenção de até 7 backups locais já enviados.
+- Execução automática pelo Agendador de Tarefas do Windows.
+- Procedimentos de recuperação e testes de integridade.
+
+Para informações sobre instalação, bibliotecas, APIs, configuração
+e restauração, consulte a
+[documentação técnica de backup](docs/BACKUP_E_RESTAURACAO.md).
