@@ -5,8 +5,10 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Banco de dados local
+# Banco de dados local e backups
 data/*.db
+data/backups/
+data/teste_restauracao/
 
 # IDE
 .vscode/
@@ -15,3 +17,18 @@ data/*.db
 # SO
 Thumbs.db
 .DS_Store
+
+# Credenciais do Google Drive
+client_secret*.json
+token.json
+
+
+data/chave_backup.key
+data/controle_backups.json
+data/controle_backups.tmp
+data/logs/
+
+# Variáveis de ambiente e arquivos temporários
+.env
+.env.*
+!.env.example
