@@ -811,3 +811,35 @@ button:focus-visible,
     color: var(--color-text);
     font-size: 0.9rem;
 }
+
+/* Caixa de confirmação */
+.confirmacao {
+    margin: auto;
+    border: none;
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+    width: min(26rem, calc(100vw - 2rem));
+    box-shadow: 0 12px 40px rgba(15, 30, 60, 0.3);
+    color: inherit;
+}
+
+.confirmacao::backdrop {
+    background: rgba(15, 30, 60, 0.5);
+}
+
+.confirmacao__titulo {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+}
+
+.confirmacao__detalhe {
+    margin: 0;
+    color: var(--color-text-muted);
+}
+
+.confirmacao__botoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}

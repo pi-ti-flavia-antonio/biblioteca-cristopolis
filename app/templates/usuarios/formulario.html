@@ -54,7 +54,7 @@
     </div>
     {% endif %}
 
-    <form method="post" class="form" novalidate>
+    <form method="post" class="form" novalidate data-confirmar="{{ 'Salvar as alterações do usuário?' if usuario_id else 'Confirmar cadastro do usuário?' }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="voltar" value="{{ voltar }}">
 

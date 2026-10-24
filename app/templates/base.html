@@ -10,6 +10,7 @@
     <title>{% block titulo %}Biblioteca Municipal de Cristópolis{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/busca.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/confirmar.js') }}" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -48,5 +49,14 @@
             </main>
         </div>
     </div>
+
+    <dialog id="caixa-confirmacao" class="confirmacao" aria-labelledby="confirmacao-titulo" aria-describedby="confirmacao-detalhe">
+        <h2 id="confirmacao-titulo" class="confirmacao__titulo"></h2>
+        <p id="confirmacao-detalhe" class="confirmacao__detalhe" hidden></p>
+        <div class="confirmacao__botoes">
+            <button type="button" id="confirmacao-sim" class="button button--primary">Sim</button>
+            <button type="button" id="confirmacao-nao" class="button button--secondary">Não</button>
+        </div>
+    </dialog>
 </body>
 </html>

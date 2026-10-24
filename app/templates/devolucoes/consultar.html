@@ -41,7 +41,7 @@
                         {% endif %}
                     </td>
                     <td class="table__actions">
-                        <form method="post" action="{{ url_for('devolucoes.registrar', id_emprestimo=emprestimo.id_emprestimo) }}">
+                        <form method="post" action="{{ url_for('devolucoes.registrar', id_emprestimo=emprestimo.id_emprestimo) }}" data-confirmar="Confirmar devolução?" data-confirmar-detalhe="{{ emprestimo.livro_titulo }}, devolvido por {{ emprestimo.usuario_nome }}.">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="button button--primary button--small">Registrar devolução</button>
                         </form>

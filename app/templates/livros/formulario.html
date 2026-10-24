@@ -42,7 +42,7 @@
     </div>
     {% endif %}
 
-    <form method="post" class="form" novalidate>
+    <form method="post" class="form" novalidate data-confirmar="{{ 'Salvar as alterações do livro?' if livro_id else 'Confirmar cadastro do livro?' }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="voltar" value="{{ voltar }}">
 
@@ -57,7 +57,7 @@
                 <div class="field__inline">
                     <input id="isbn" name="isbn" type="text" value="{{ valores.isbn }}" maxlength="17"
                            class="input{% if erros.isbn %} input--error{% endif %}">
-                    <button type="submit" name="acao" value="buscar_isbn" class="button button--secondary" formnovalidate>
+                    <button type="submit" name="acao" value="buscar_isbn" class="button button--secondary" formnovalidate data-sem-confirmacao>
                         Buscar dados
                     </button>
                 </div>

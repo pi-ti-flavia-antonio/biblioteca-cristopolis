@@ -13,6 +13,7 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 - **Reservas:** reserva de livros sem exemplar disponível, com fila por ordem de chegada. Quando um exemplar volta, só a reserva mais antiga é sinalizada para retirada, com mensagem na devolução, um contador vermelho no menu e na aba Reservas (que some quando a aba é aberta) e um aviso fixo no topo da tela, que continua enquanto a retirada não for registrada, com o telefone e um botão que abre o WhatsApp com a mensagem pronta.
 - **Devoluções:** registro da devolução, com atualização automática do estoque e aviso de atraso.
 - **Relatórios:** empréstimos por período (de até 1 ano), com aviso de geração e exportação em PDF, e lista de empréstimos em atraso.
+- **Confirmação:** cadastrar, salvar alterações, registrar empréstimo, reserva, retirada e devolução, e cancelar uma reserva abrem uma caixa com a pergunta (por exemplo, "Confirmar devolução?") e os botões Sim e Não. Só o Sim grava; Não e a tecla Esc voltam sem alterar nada. Excluir livro ou usuário já tem uma página própria de confirmação.
 - **Painel inicial:** totais do acervo, empréstimos ativos, usuários e empréstimos recentes.
 
 Ainda não implementados: backup do banco para a nuvem e login de funcionários.

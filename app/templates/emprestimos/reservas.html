@@ -31,7 +31,7 @@
 <section class="panel" aria-labelledby="reservar-heading">
     <h2 id="reservar-heading">Reservar livro</h2>
 
-    <form method="post" action="{{ url_for('emprestimos.reservas') }}" class="form" novalidate>
+    <form method="post" action="{{ url_for('emprestimos.reservas') }}" class="form" novalidate data-confirmar="Confirmar reserva?">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="form__grid">
@@ -96,12 +96,12 @@
                     </td>
                     <td class="table__actions">
                         {% if reserva.disponivel_para_retirada %}
-                        <form method="post" action="{{ url_for('emprestimos.reservas_retirar', id_reserva=reserva.id_reserva) }}" class="link-action-form">
+                        <form method="post" action="{{ url_for('emprestimos.reservas_retirar', id_reserva=reserva.id_reserva) }}" class="link-action-form" data-confirmar="Confirmar retirada?" data-confirmar-detalhe="{{ reserva.livro_titulo }}, retirado por {{ reserva.usuario_nome }}.">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="link-action-button">Registrar retirada</button>
                         </form>
                         {% endif %}
-                        <form method="post" action="{{ url_for('emprestimos.reservas_cancelar', id_reserva=reserva.id_reserva) }}" class="link-action-form">
+                        <form method="post" action="{{ url_for('emprestimos.reservas_cancelar', id_reserva=reserva.id_reserva) }}" class="link-action-form" data-confirmar="Cancelar esta reserva?" data-confirmar-detalhe="{{ reserva.livro_titulo }}, reservado por {{ reserva.usuario_nome }}." data-confirmar-perigo>
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="link-action-button link-action-button--danger">Cancelar</button>
                         </form>
