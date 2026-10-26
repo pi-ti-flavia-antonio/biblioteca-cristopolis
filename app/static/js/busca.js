@@ -58,7 +58,7 @@
         function selo(item) {
             if (typeof item.disponiveis === "number") {
                 return item.disponiveis === 0
-                    ? '<span class="badge badge--overdue">Sem exemplar</span>'
+                    ? '<span class="badge badge--overdue">Indisponível</span>'
                     : '<span class="badge">' + item.disponiveis + (item.disponiveis === 1 ? " disponível" : " disponíveis") + "</span>";
             }
             if (item.rotulo) return '<span class="badge badge--neutral">' + escapar(item.rotulo) + "</span>";

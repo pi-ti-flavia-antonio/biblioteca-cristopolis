@@ -32,7 +32,7 @@
                 livro.id_livro if livro else "",
                 (livro.titulo ~ ", de " ~ livro.autor) if livro else "",
                 "Digite o título, o autor ou o ISBN", erros.id_livro) %}
-            <p class="field__hint">Livros sem exemplar aparecem na lista, mas não podem ser escolhidos.</p>
+            <p class="field__hint">Livros indisponíveis aparecem na lista, mas não podem ser escolhidos.</p>
             <p class="field__hint">
                 O livro que você procura não está cadastrado no acervo?
                 <a class="link-action" href="{{ url_for('livros.cadastrar', voltar='emprestimo') }}">Clique aqui para cadastrá-lo</a>.
