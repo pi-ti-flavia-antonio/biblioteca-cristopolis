@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Manual do Usuário</title><style>
+@page { size: A4; margin: 20mm 18mm 22mm 18mm;
+  @bottom-left { content: "Manual do Usuário | Biblioteca Municipal de Cristópolis"; font: 8.5pt 'Segoe UI', sans-serif; color: #6b7280; }
+  @bottom-right { content: counter(page); font: 9pt 'Segoe UI', sans-serif; color: #6b7280; } }
+@page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+body { font: 10.5pt/1.5 'Segoe UI', Arial, sans-serif; color: #1f2933; margin: 0; }
+.capa { height: 296mm; background: #1d4e89; color: #fff; padding: 60mm 24mm 24mm; page-break-after: always; display: flex; flex-direction: column; }
+.capa .marca { font-size: 15pt; letter-spacing: .5px; opacity: .85; margin-bottom: 14mm; }
+.capa h1 { font-size: 40pt; line-height: 1.1; margin: 0 0 8mm; border: 0; padding: 0; color: #fff; break-before: auto; }
+.capa .sub { font-size: 17pt; line-height: 1.35; max-width: 140mm; }
+.capa .rodape { margin-top: auto; font-size: 10.5pt; line-height: 1.6; opacity: .9; }
+h1.continua { break-before: auto; margin-top: 12mm; }
+h1 { font-size: 21pt; color: #1d4e89; margin: 0 0 6mm; padding-bottom: 2.5mm; border-bottom: 2.5px solid #1d4e89; break-before: page; }
+h2 { font-size: 13.5pt; color: #163c69; margin: 8mm 0 3mm; break-after: avoid; }
+p { margin: 0 0 3.2mm; }
+ul, ol { margin: 0 0 4mm; padding-left: 7mm; }
+li { margin-bottom: 1.6mm; }
+figure { margin: 4mm 0 3mm; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; max-height: 135mm; border: 1px solid #c7ced8; border-radius: 4px; }
+figcaption { font-size: 9.5pt; color: #4b5563; margin-top: 1.8mm; }
+ol.marcas { list-style: none; counter-reset: m; padding-left: 0; margin: 0 0 5mm; }
+ol.marcas li { counter-increment: m; position: relative; padding-left: 9mm; min-height: 6.5mm; margin-bottom: 2mm; }
+ol.marcas li::before { content: counter(m); position: absolute; left: 0; top: .3mm; width: 6mm; height: 6mm; border-radius: 50%; background: #e11d48; color: #fff; font-weight: 700; font-size: 9pt; text-align: center; line-height: 6mm; }
+.dica, .atencao { border-left: 4px solid; border-radius: 4px; padding: 3mm 4mm; margin: 3mm 0 5mm; break-inside: avoid; }
+.dica { background: #e8f1fb; border-color: #1d4e89; }
+.atencao { background: #fdf3d8; border-color: #d99a00; }
+.dica::before, .atencao::before { font-weight: 700; display: block; margin-bottom: 1mm; }
+.dica::before { content: "Dica"; color: #1d4e89; }
+.atencao::before { content: "Atenção"; color: #8a5a00; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-size: 10pt; }
+th { background: #1d4e89; color: #fff; text-align: left; padding: 2mm 3mm; }
+td { border-bottom: 1px solid #d5dbe3; padding: 2mm 3mm; vertical-align: top; }
+tr { break-inside: avoid; }
+tbody tr:nth-child(even) td { background: #f5f7fa; }
+.sumario h1 { break-before: page; }
+.sumario ul { list-style: none; padding: 0; }
+.sumario li { display: flex; align-items: baseline; margin: 0 0 .5mm; font-size: 9.5pt; line-height: 1.35; }
+.sumario li.n1 { font-weight: 700; margin-top: 2.2mm; color: #163c69; font-size: 10pt; }
+.sumario li.n2 { padding-left: 7mm; }
+.sumario .pontos { flex: 1; border-bottom: 1px dotted #9aa5b1; margin: 0 2mm; transform: translateY(-1mm); }
+</style></head><body><section class="capa"><div class="marca">Biblioteca Municipal de Cristópolis</div><h1>Manual do Usuário</h1><div class="sub">Sistema de gestão da biblioteca: como cadastrar, emprestar, devolver, reservar e tirar relatórios.</div><div class="rodape">Para a bibliotecária<br>Outubro de 2026<br>Os nomes, CPFs e telefones que aparecem nas imagens são inventados.</div></section><section class="sumario"><h1>Sumário</h1><ul><li class="n1"><span>1. Antes de começar</span><span class="pontos"></span><span>3</span></li><li class="n2"><span>1.1 Para que serve o sistema</span><span class="pontos"></span><span>3</span></li><li class="n2"><span>1.2 Como abrir</span><span class="pontos"></span><span>3</span></li><li class="n2"><span>1.3 O menu e as imagens deste manual</span><span class="pontos"></span><span>3</span></li><li class="n2"><span>1.4 As perguntas de confirmação</span><span class="pontos"></span><span>3</span></li><li class="n1"><span>2. Entrar no sistema</span><span class="pontos"></span><span>4</span></li><li class="n2"><span>2.1 Primeiro acesso</span><span class="pontos"></span><span>4</span></li><li class="n2"><span>2.2 Entrar no dia a dia</span><span class="pontos"></span><span>5</span></li><li class="n2"><span>2.3 Sair do sistema</span><span class="pontos"></span><span>6</span></li><li class="n2"><span>2.4 Esqueci a senha ou o usuário</span><span class="pontos"></span><span>6</span></li><li class="n1"><span>3. A tela inicial</span><span class="pontos"></span><span>7</span></li><li class="n1"><span>4. Livros</span><span class="pontos"></span><span>8</span></li><li class="n2"><span>4.1 Consultar o acervo</span><span class="pontos"></span><span>8</span></li><li class="n2"><span>4.2 Cadastrar um livro</span><span class="pontos"></span><span>9</span></li><li class="n2"><span>4.3 Editar um livro</span><span class="pontos"></span><span>11</span></li><li class="n2"><span>4.4 Excluir um livro</span><span class="pontos"></span><span>12</span></li><li class="n1"><span>5. Usuários</span><span class="pontos"></span><span>13</span></li><li class="n2"><span>5.1 Consultar usuários</span><span class="pontos"></span><span>13</span></li><li class="n2"><span>5.2 Cadastrar um usuário</span><span class="pontos"></span><span>13</span></li><li class="n2"><span>5.3 Editar um usuário</span><span class="pontos"></span><span>15</span></li><li class="n2"><span>5.4 Excluir, inativar e reativar</span><span class="pontos"></span><span>15</span></li><li class="n1"><span>6. Empréstimos</span><span class="pontos"></span><span>19</span></li><li class="n2"><span>6.1 Registrar um empréstimo</span><span class="pontos"></span><span>19</span></li><li class="n2"><span>6.2 Quando o livro está indisponível</span><span class="pontos"></span><span>20</span></li><li class="n2"><span>6.3 Quando o leitor já está com um livro</span><span class="pontos"></span><span>21</span></li><li class="n2"><span>6.4 Histórico de empréstimos</span><span class="pontos"></span><span>22</span></li><li class="n1"><span>7. Devoluções</span><span class="pontos"></span><span>24</span></li><li class="n1"><span>8. Reservas</span><span class="pontos"></span><span>26</span></li><li class="n2"><span>8.1 Reservar um livro</span><span class="pontos"></span><span>26</span></li><li class="n2"><span>8.2 Quando o livro reservado volta</span><span class="pontos"></span><span>27</span></li><li class="n2"><span>8.3 Registrar a retirada ou cancelar a reserva</span><span class="pontos"></span><span>28</span></li><li class="n1"><span>9. Relatórios</span><span class="pontos"></span><span>29</span></li><li class="n2"><span>9.1 Empréstimos por período</span><span class="pontos"></span><span>29</span></li><li class="n2"><span>9.2 Empréstimos em atraso</span><span class="pontos"></span><span>30</span></li><li class="n1"><span>10. Minha conta</span><span class="pontos"></span><span>32</span></li><li class="n1"><span>11. Cuidados no dia a dia</span><span class="pontos"></span><span>33</span></li><li class="n1"><span>12. Mensagens que podem aparecer</span><span class="pontos"></span><span>33</span></li><li class="n1"><span>13. Resumo rápido</span><span class="pontos"></span><span>35</span></li></ul></section><h1>1. Antes de começar</h1>
+<h2>1.1 Para que serve o sistema</h2>
+<p>O sistema ajuda você a cuidar do dia a dia da biblioteca: cadastrar livros e leitores, emprestar, receber os livros de volta, controlar as reservas e tirar relatórios.</p>
+<p>Tudo fica guardado no computador da biblioteca. Você não precisa de internet para trabalhar. A internet só é usada em dois momentos: para buscar os dados de um livro pelo ISBN e para abrir o WhatsApp quando for avisar um leitor.</p>
+<h2>1.2 Como abrir</h2>
+<p>O sistema abre como um programa comum, numa janela só, com o título <strong>Biblioteca Municipal de Cristópolis</strong>. Se não souber qual é o atalho, peça para quem instalou o sistema.</p>
+<h2>1.3 O menu e as imagens deste manual</h2>
+<p>O menu fica na faixa azul, à esquerda, e está sempre na tela: <strong>Início</strong>, <strong>Livros</strong>, <strong>Usuários</strong>, <strong>Empréstimos</strong>, <strong>Devoluções</strong> e <strong>Relatórios</strong>. Mais embaixo estão o seu nome, o link <strong>Minha conta</strong> e o botão <strong>Sair</strong>.</p>
+<p>Nas imagens, os círculos vermelhos com números mostram onde olhar ou clicar, e o texto logo abaixo explica cada número. Esses círculos servem só para o manual e não aparecem no sistema de verdade. Os nomes, CPFs e telefones das imagens são inventados.</p>
+<h2>1.4 As perguntas de confirmação</h2>
+<p>Antes de gravar qualquer coisa, o sistema abre uma caixa com uma pergunta, por exemplo "Confirmar cadastro do livro?", e dois botões: <strong>Sim</strong> e <strong>Não</strong>. A caixa aparece no cadastro, na edição, no empréstimo, na reserva, na retirada, na devolução e no cancelamento de reserva.</p>
+<ul><li><strong>Sim</strong> grava a ação.</li><li><strong>Não</strong>, ou a tecla <strong>Esc</strong>, fecha a caixa e não muda nada.</li></ul>
+<p>Leia a pergunta com atenção. Na devolução e na retirada, a caixa mostra o nome do livro e do leitor para você conferir antes de confirmar. Um exemplo está na Figura 7.</p>
+<h1>2. Entrar no sistema</h1>
+<h2>2.1 Primeiro acesso</h2>
+<p>Na primeira vez que o sistema abre, ele ainda não tem conta e pede para você criar a sua, como na Figura 1.</p>
+<figure><img src="img/01_primeiro_acesso.png" alt="Tela de primeiro acesso"><figcaption>Figura 1. Tela de primeiro acesso</figcaption></figure>
+<ol class="marcas"><li>Seu nome.</li><li>Nome de usuário: é o que você vai digitar para entrar. Não pode ter espaços.</li><li>Senha, com pelo menos 8 caracteres.</li><li>Repita a senha, igualzinha à anterior.</li><li>Clique em <strong>Criar conta e entrar</strong>. Você já entra no sistema.</li></ol>
+<div class="dica">Anote a senha em um lugar seguro. O sistema guarda a senha de um jeito que ninguém consegue ler, nem ele mesmo. Se você esquecer, só dá para criar uma nova (veja a seção 2.4).</div>
+<p>Essa tela só aparece uma vez. Depois que a conta existe, o sistema sempre pede o usuário e a senha.</p>
+<h2>2.2 Entrar no dia a dia</h2>
+<figure><img src="img/02_login.png" alt="Tela de login"><figcaption>Figura 2. Tela de login</figcaption></figure>
+<ol class="marcas"><li>Digite o seu nome de usuário.</li><li>Digite a sua senha.</li><li>Clique em <strong>Entrar</strong>.</li></ol>
+<p>Se o usuário ou a senha estiverem errados, o sistema avisa e você pode tentar de novo. Depois de <strong>5 tentativas erradas seguidas</strong>, ele pede para esperar 60 segundos antes de tentar outra vez. Isso protege o sistema de quem tentar adivinhar a senha.</p>
+<h2>2.3 Sair do sistema</h2>
+<p>Quando for se afastar do computador, clique em <strong>Sair</strong>, no fim do menu à esquerda. Assim ninguém usa o sistema no seu lugar.</p>
+<p>Se o sistema ficar <strong>30 minutos sem ser usado</strong>, ele sai sozinho e pede a senha de novo. Se isso acontecer no meio de um cadastro, entre outra vez e preencha de novo.</p>
+<h2>2.4 Esqueci a senha ou o usuário</h2>
+<p>O sistema não manda a senha por e-mail. Quem cuida do sistema consegue criar uma nova senha, e também trocar o usuário, no computador da biblioteca (com o arquivo redefinir_senha.py). Peça ajuda a essa pessoa.</p>
+<p>Se você só quer trocar a senha ou o usuário e lembra os atuais, não precisa de ajuda: veja a seção 9, <strong>Minha conta</strong>.</p>
+<h1>3. A tela inicial</h1>
+<p>Ao entrar, você chega ao <strong>Painel</strong>, na Figura 3. Ele mostra um resumo do que está acontecendo na biblioteca.</p>
+<figure><img src="img/03_painel.png" alt="Painel inicial"><figcaption>Figura 3. Painel inicial</figcaption></figure>
+<ol class="marcas"><li>O menu para ir a cada parte do sistema.</li><li>O resumo: quantos exemplares de livros a biblioteca tem, quantos empréstimos estão em aberto e quantos usuários estão cadastrados.</li><li>O aviso vermelho "em atraso". Ele só aparece quando existe empréstimo com a data de devolução vencida.</li><li>Os empréstimos mais recentes, com a data prevista de devolução e a situação: <strong>Ativo</strong> ou <strong>Atrasado</strong>.</li><li>Atalhos para <strong>Novo empréstimo</strong> e <strong>Registrar devolução</strong>.</li><li>O seu nome, o link <strong>Minha conta</strong> e o botão <strong>Sair</strong>.</li></ol>
+<h1>4. Livros</h1>
+<h2>4.1 Consultar o acervo</h2>
+<p>Clique em <strong>Livros</strong> no menu. A aba <strong>Consultar acervo</strong> mostra todos os livros cadastrados.</p>
+<figure><img src="img/04_busca_livros.png" alt="Busca de livros com sugestões"><figcaption>Figura 4. Busca de livros com sugestões</figcaption></figure>
+<ol class="marcas"><li>Digite parte do título, do autor ou do ISBN. A busca não liga para acentos nem para letras maiúsculas.</li><li>Enquanto você digita, aparecem sugestões. Clique em uma delas para ver o livro.</li></ol>
+<p>Você também pode digitar tudo e clicar em <strong>Buscar</strong>. Para ver a lista inteira de novo, apague o texto e busque outra vez.</p>
+<figure><img src="img/05_lista_livros.png" alt="Lista de livros do acervo"><figcaption>Figura 5. Lista de livros do acervo</figcaption></figure>
+<ol class="marcas"><li>A caixa de busca.</li><li>A lista de livros. A coluna <strong>Disponíveis</strong> mostra quantos exemplares estão na estante e quantos existem no total. Por exemplo, "2 de 3" quer dizer que 2 dos 3 exemplares podem ser emprestados. Em vermelho, "0 de 1" quer dizer que o único exemplar está emprestado.</li><li><strong>Editar</strong> e <strong>Excluir</strong> de cada livro.</li></ol>
+<h2>4.2 Cadastrar um livro</h2>
+<p>Clique em <strong>Livros</strong> e depois na aba <strong>Cadastrar livro</strong>, como na Figura 6.</p>
+<figure><img src="img/06_cadastro_livro.png" alt="Formulário de cadastro de livro"><figcaption>Figura 6. Formulário de cadastro de livro</figcaption></figure>
+<ol class="marcas"><li><strong>Título</strong> (obrigatório).</li><li><strong>Autor</strong> (obrigatório).</li><li><strong>Quantidade de exemplares</strong> (obrigatório). O campo vem em branco de propósito: digite quantos exemplares a biblioteca tem desse livro. Assim ninguém cadastra tudo como 1 sem perceber.</li><li><strong>ISBN</strong> (opcional). Pode digitar com ou sem hífen.</li><li><strong>Buscar dados</strong>: com o ISBN digitado, o sistema procura na internet e preenche título, autor e ano. Precisa de internet. Se não achar, preencha tudo à mão.</li><li><strong>Salvar</strong>. O sistema pergunta se você confirma o cadastro, como na Figura 7.</li></ol>
+<p>Os campos <strong>Categoria</strong> e <strong>Ano de publicação</strong> são opcionais. Na categoria, escolha uma da lista ou digite uma nova, que o sistema cria ao salvar.</p>
+<figure><img src="img/07_confirma_livro.png" alt="Pergunta de confirmação do cadastro"><figcaption>Figura 7. Pergunta de confirmação do cadastro</figcaption></figure>
+<ol class="marcas"><li><strong>Sim</strong> grava o livro.</li><li><strong>Não</strong> volta para o formulário, sem gravar.</li></ol>
+<div class="atencao">Se já existir um livro com o mesmo ISBN, o sistema avisa e mostra qual é. Nesse caso, não cadastre de novo: abra o livro em <strong>Editar</strong> e aumente a quantidade.</div>
+<h2>4.3 Editar um livro</h2>
+<p>Na lista de livros, clique em <strong>Editar</strong> na linha do livro, mude o que precisar e clique em <strong>Salvar</strong>. O sistema pergunta "Salvar as alterações do livro?". Confirme com <strong>Sim</strong>.</p>
+<p>A quantidade não pode ficar menor que o número de exemplares que estão emprestados no momento. O sistema avisa quando isso acontece.</p>
+<h2>4.4 Excluir um livro</h2>
+<p>Clique em <strong>Excluir</strong> na linha do livro. O sistema pergunta se você tem certeza, como na Figura 8.</p>
+<figure><img src="img/08_excluir_livro.png" alt="Tela de exclusão de livro"><figcaption>Figura 8. Tela de exclusão de livro</figcaption></figure>
+<ol class="marcas"><li>A pergunta, com o nome do livro. Depois de excluído, ele não pode ser recuperado.</li><li><strong>Sim, excluir</strong> apaga o livro.</li><li><strong>Cancelar</strong> volta sem apagar.</li></ol>
+<div class="atencao">Um livro que já teve empréstimo ou reserva não pode ser excluído, porque o histórico precisa continuar nos relatórios. Se o livro saiu do acervo, edite a quantidade.</div>
+<h1>5. Usuários</h1>
+<p>Os leitores da biblioteca são chamados de <strong>usuários</strong> no sistema.</p>
+<h2>5.1 Consultar usuários</h2>
+<p>Clique em <strong>Usuários</strong> no menu. A aba <strong>Ver usuários</strong> mostra todos os leitores cadastrados, como na Figura 9.</p>
+<figure><img src="img/09_lista_usuarios.png" alt="Lista de usuários"><figcaption>Figura 9. Lista de usuários</figcaption></figure>
+<ol class="marcas"><li>Busca por nome ou por CPF. Pode digitar o CPF com ou sem pontos.</li><li><strong>Mostrar inativos</strong>: inclui na lista os usuários que foram inativados (veja a seção 5.4).</li><li>A lista. O CPF aparece com parte escondida, só os dois últimos números ficam visíveis. Isso protege os dados dos leitores.</li><li><strong>Editar</strong> e <strong>Excluir</strong> de cada usuário.</li></ol>
+<h2>5.2 Cadastrar um usuário</h2>
+<p>Clique na aba <strong>Cadastrar usuário</strong>, como na Figura 10.</p>
+<figure><img src="img/10_cadastro_usuario.png" alt="Formulário de cadastro de usuário"><figcaption>Figura 10. Formulário de cadastro de usuário</figcaption></figure>
+<ol class="marcas"><li><strong>Nome completo</strong> (obrigatório).</li><li><strong>CPF</strong> (obrigatório). O sistema confere se o número é válido. Pode digitar com ou sem pontos.</li><li><strong>Telefone</strong> (obrigatório), com DDD. Celular: (77) 99999-9999. Telefone fixo: (77) 3333-3333.</li><li><strong>Tipo de usuário</strong> (opcional): aluno, professor ou comunidade.</li><li><strong>Salvar</strong>, e depois <strong>Sim</strong> na pergunta de confirmação.</li></ol>
+<p>O <strong>e-mail</strong> e o <strong>endereço</strong> são opcionais.</p>
+<div class="dica">Confira o telefone com o leitor. É por ele que você avisa, pelo WhatsApp, quando um livro reservado chega. O sistema confere o formato do número, mas não tem como saber se ele existe.</div>
+<div class="atencao">Não é possível cadastrar duas pessoas com o mesmo CPF. Se o sistema disser que o CPF já existe, procure a pessoa na lista. Se a mensagem disser que o CPF pertence a um usuário <strong>inativo</strong>, veja a seção 5.4.</div>
+<h2>5.3 Editar um usuário</h2>
+<p>Na lista, clique em <strong>Editar</strong> na linha da pessoa, mude os dados e clique em <strong>Salvar</strong>. Confirme com <strong>Sim</strong>. Use a edição, por exemplo, quando o leitor trocar de telefone.</p>
+<h2>5.4 Excluir, inativar e reativar</h2>
+<p>Clique em <strong>Excluir</strong> na linha do usuário. O que acontece depende da situação da pessoa:</p>
+<table><thead><tr><th style="width:46%">Situação do usuário</th><th style="width:54%">O que o sistema faz</th></tr></thead><tbody><tr><td>Está com um livro emprestado ou tem uma reserva ativa</td><td>Não deixa excluir nem inativar. Primeiro registre a devolução ou cancele a reserva.</td></tr><tr><td>Nunca teve empréstimo nem reserva (por exemplo, foi cadastrado por engano)</td><td>Pergunta "Tem certeza que deseja excluir o usuário...?". Com <strong>Sim, excluir</strong>, o cadastro é apagado.</td></tr><tr><td>Já teve empréstimos ou reservas, e agora está sem nada pendente</td><td>Não deixa excluir, para o histórico continuar nos relatórios. Oferece <strong>inativar</strong>.</td></tr></tbody></table>
+<figure><img src="img/11_excluir_com_pendencia.png" alt="Usuário com pendência: não pode ser excluído nem inativado"><figcaption>Figura 11. Usuário com pendência: não pode ser excluído nem inativado</figcaption></figure>
+<figure><img src="img/12_inativar_pergunta.png" alt="Usuário com histórico: o sistema oferece inativar"><figcaption>Figura 12. Usuário com histórico: o sistema oferece inativar</figcaption></figure>
+<p>Ao inativar, o sistema confirma com uma mensagem, como na Figura 13. O usuário inativo <strong>some das buscas de empréstimo e reserva</strong>, então ninguém empresta livro para ele por engano, mas o histórico dele continua nos relatórios.</p>
+<figure><img src="img/24_inativado.png" alt="Mensagem depois de inativar um usuário"><figcaption>Figura 13. Mensagem depois de inativar um usuário</figcaption></figure>
+<p><strong>Para reativar:</strong> na lista de usuários, clique em <strong>Mostrar inativos</strong>. O usuário aparece com a etiqueta <strong>Inativo</strong> e o botão <strong>Reativar</strong>, como na Figura 14. Se você buscar por um nome ou CPF que só existe como inativo, ele também aparece sozinho.</p>
+<figure><img src="img/25_usuarios_inativos.png" alt="Lista com o usuário inativo e o botão Reativar"><figcaption>Figura 14. Lista com o usuário inativo e o botão Reativar</figcaption></figure>
+<p>Outro caminho: se você tentar cadastrar de novo o CPF de um usuário inativo, o sistema mostra o nome dele e um botão <strong>Reativar este usuário</strong>. Depois de reativar, o sistema abre a edição para você conferir se o telefone e o endereço continuam certos.</p>
+<h1>6. Empréstimos</h1>
+<h2>6.1 Registrar um empréstimo</h2>
+<p>Clique em <strong>Empréstimos</strong> no menu. A primeira aba, <strong>Realizar empréstimo</strong>, é a que você vai usar mais, como na Figura 15.</p>
+<figure><img src="img/13_emprestimo.png" alt="Tela de realizar empréstimo"><figcaption>Figura 15. Tela de realizar empréstimo</figcaption></figure>
+<ol class="marcas"><li><strong>Usuário</strong>: digite o nome ou o CPF e escolha a pessoa na lista de sugestões. Ela aparece no campo com o CPF parcialmente escondido. Para escolher outra pessoa, clique em <strong>Trocar</strong>.</li><li><strong>Livro</strong>: digite o título, o autor ou o ISBN e escolha o livro na lista. Para trocar, clique em <strong>Trocar</strong>.</li><li><strong>Registrar empréstimo</strong>. O sistema pergunta "Confirmar empréstimo?", como na Figura 16. Clique em <strong>Sim</strong>.</li></ol>
+<figure><img src="img/14_emprestimo_confirma.png" alt="Pergunta de confirmação do empréstimo"><figcaption>Figura 16. Pergunta de confirmação do empréstimo</figcaption></figure>
+<p>O prazo de devolução é de <strong>30 dias</strong>, contados a partir de hoje, e o sistema calcula sozinho. Depois de confirmar, aparece a mensagem "Empréstimo registrado. Devolução prevista para..." com a data.</p>
+<div class="dica">Se o leitor ou o livro ainda não estão cadastrados, use o link <strong>Clique aqui para cadastrá-lo</strong>, que fica logo abaixo de cada campo. Depois do cadastro, o sistema volta para o empréstimo.</div>
+<h2>6.2 Quando o livro está indisponível</h2>
+<p>Se todos os exemplares de um livro estão emprestados, ele aparece na lista com o selo cinza <strong>Indisponível</strong> e não pode ser escolhido, como na Figura 17. Nesse caso, o leitor pode <strong>reservar</strong> o livro (veja o capítulo 8).</p>
+<figure><img src="img/15_emprestimo_indisponivel.png" alt="Livro indisponível na lista de sugestões"><figcaption>Figura 17. Livro indisponível na lista de sugestões</figcaption></figure>
+<ol class="marcas"><li>O selo <strong>Indisponível</strong>: o livro aparece, mas não dá para escolher.</li></ol>
+<h2>6.3 Quando o leitor já está com um livro</h2>
+<p>Cada leitor pode ficar com <strong>um livro por vez</strong>. Se você tentar emprestar um segundo livro, o sistema recusa e mostra o aviso da Figura 18. O leitor precisa devolver o livro que está com ele antes de levar outro.</p>
+<figure><img src="img/16_emprestimo_pendencia.png" alt="Aviso quando o leitor já está com um livro emprestado"><figcaption>Figura 18. Aviso quando o leitor já está com um livro emprestado</figcaption></figure>
+<ol class="marcas"><li>A mensagem de aviso, em vermelho, embaixo do nome do usuário.</li></ol>
+<h2>6.4 Histórico de empréstimos</h2>
+<p>A aba <strong>Histórico de empréstimos</strong> (na Figura 19) mostra todos os empréstimos, os que já voltaram e os que ainda estão abertos. Use a busca por livro ou usuário para achar um registro.</p>
+<figure><img src="img/17_historico.png" alt="Histórico de empréstimos"><figcaption>Figura 19. Histórico de empréstimos</figcaption></figure>
+<p>A coluna <strong>Status</strong> mostra <strong>Ativo</strong> (dentro do prazo), <strong>Atrasado</strong> (passou da data prevista) ou <strong>Devolvido</strong>.</p>
+<h1>7. Devoluções</h1>
+<p>Clique em <strong>Devoluções</strong> no menu. A lista mostra só os livros que estão emprestados no momento, como na Figura 20.</p>
+<figure><img src="img/19_devolucao_lista.png" alt="Lista de devoluções"><figcaption>Figura 20. Lista de devoluções</figcaption></figure>
+<ol class="marcas"><li>Busca por livro ou por usuário.</li><li>Os empréstimos em aberto, com a data prevista. Os atrasados aparecem em vermelho.</li><li><strong>Registrar devolução</strong>, na linha do livro que voltou.</li></ol>
+<p>Ao clicar, o sistema pergunta "Confirmar devolução?" e mostra o livro e o leitor, como na Figura 21. Confira os nomes e clique em <strong>Sim</strong>.</p>
+<figure><img src="img/20_devolucao_confirma.png" alt="Pergunta de confirmação da devolução"><figcaption>Figura 21. Pergunta de confirmação da devolução</figcaption></figure>
+<ol class="marcas"><li><strong>Sim</strong> registra a devolução.</li><li><strong>Não</strong> cancela.</li></ol>
+<p>Depois da devolução, o sistema mostra uma mensagem: "Devolvido no prazo" ou "Devolvido com X dias de atraso". O exemplar volta sozinho para o estoque e já pode ser emprestado de novo.</p>
+<h1>8. Reservas</h1>
+<h2>8.1 Reservar um livro</h2>
+<p>Reserva é para o leitor que quer um livro que está <strong>sem nenhum exemplar na estante</strong>. Clique em <strong>Empréstimos</strong> e depois na aba <strong>Reservas</strong>, na Figura 22.</p>
+<figure><img src="img/18_reservas.png" alt="Aba Reservas"><figcaption>Figura 22. Aba Reservas</figcaption></figure>
+<ol class="marcas"><li><strong>Usuário</strong>: digite o nome ou o CPF e escolha a pessoa.</li><li><strong>Livro esgotado</strong>: só aparecem livros sem exemplar disponível. Se o livro tiver exemplar, faça um empréstimo. Depois, clique em <strong>Registrar reserva</strong> e confirme.</li><li>A lista de reservas ativas, na ordem em que foram feitas. A situação <strong>Aguardando</strong> quer dizer que o livro ainda não voltou.</li></ol>
+<p>As reservas formam uma fila. Quando o livro volta, quem reservou primeiro é o primeiro a ser avisado. O mesmo leitor não pode reservar duas vezes o mesmo livro.</p>
+<h2>8.2 Quando o livro reservado volta</h2>
+<p>Quando você registra a devolução de um livro que tem reserva, o sistema avisa na hora, como na Figura 23.</p>
+<figure><img src="img/26_devolucao_feita.png" alt="Aviso na devolução de um livro que tinha reserva"><figcaption>Figura 23. Aviso na devolução de um livro que tinha reserva</figcaption></figure>
+<ol class="marcas"><li>A devolução foi registrada.</li><li>O aviso em amarelo mostra <strong>quem reservou</strong> e o <strong>telefone</strong> para você avisar.</li><li>Aparece um <strong>contador vermelho</strong> ao lado de Empréstimos no menu. Ele diz quantos livros reservados estão esperando para ser retirados.</li></ol>
+<p>Na aba <strong>Reservas</strong>, o aviso continua na tela, como na Figura 24.</p>
+<figure><img src="img/27_reservas_pronta.png" alt="Aba Reservas com o aviso de livro disponível"><figcaption>Figura 24. Aba Reservas com o aviso de livro disponível</figcaption></figure>
+<ol class="marcas"><li>A faixa amarela com o nome de quem reservou e o telefone. Ela fica na tela <strong>até a retirada ser registrada</strong>, para você não esquecer.</li><li><strong>Avisar por WhatsApp</strong>: abre o WhatsApp com a mensagem já escrita. É só enviar.</li><li>A aba <strong>Reservas</strong>. O contador vermelho do menu some quando você abre essa aba. A faixa amarela continua.</li></ol>
+<div class="atencao">O sistema <strong>não envia</strong> a mensagem sozinho. Quem avisa o leitor é você. Se o telefone do leitor estiver incompleto, o botão do WhatsApp não aparece. Ligue para a pessoa e corrija o telefone em <strong>Usuários</strong>, <strong>Editar</strong>.</div>
+<h2>8.3 Registrar a retirada ou cancelar a reserva</h2>
+<p>Quando o leitor vier buscar o livro, clique em <strong>Registrar retirada</strong> na linha da reserva e confirme. A reserva vira um empréstimo de 30 dias, desde que o leitor não esteja com outro livro. Se ele desistir, clique em <strong>Cancelar</strong>: o sistema pergunta "Cancelar esta reserva?", e o botão <strong>Sim</strong> aparece em vermelho.</p>
+<h1>9. Relatórios</h1>
+<h2>9.1 Empréstimos por período</h2>
+<p>Clique em <strong>Relatórios</strong> no menu. A tela abre vazia, como na Figura 25. Você escolhe o período e gera o relatório.</p>
+<figure><img src="img/21_relatorio.png" alt="Relatório de empréstimos por período"><figcaption>Figura 25. Relatório de empréstimos por período</figcaption></figure>
+<ol class="marcas"><li><strong>De</strong>: a data inicial.</li><li><strong>Até</strong>: a data final.</li><li><strong>Gerar relatório</strong>. O período pode ter no máximo <strong>1 ano</strong>.</li><li><strong>Baixar PDF</strong>: salva o relatório em um arquivo PDF, para imprimir ou guardar. Esse botão só aparece depois que o relatório é gerado.</li></ol>
+<p>Quando o relatório fica pronto, o sistema avisa quantos empréstimos foram registrados no período. O PDF tem o formato da Figura 26.</p>
+<figure><img src="img/28_pdf_relatorio.png" alt="Exemplo do PDF do relatório por período"><figcaption>Figura 26. Exemplo do PDF do relatório por período</figcaption></figure>
+<div class="atencao">Se a data inicial for depois da data final, ou se o período passar de 1 ano, o sistema avisa e não gera o relatório.</div>
+<h2>9.2 Empréstimos em atraso</h2>
+<p>A aba <strong>Empréstimos em atraso</strong>, na Figura 27, lista quem está com a devolução vencida: o livro, o leitor, o <strong>telefone</strong>, a data prevista e quantos dias de atraso. Use essa lista para ligar ou mandar mensagem para os leitores.</p>
+<figure><img src="img/22_atrasos.png" alt="Lista de empréstimos em atraso"><figcaption>Figura 27. Lista de empréstimos em atraso</figcaption></figure>
+<p>Essa lista é só para consulta na tela. Ela não entra no PDF do relatório por período.</p>
+<h1>10. Minha conta</h1>
+<p>Clique em <strong>Minha conta</strong>, no fim do menu. A página tem duas partes, como na Figura 28.</p>
+<figure><img src="img/23_conta.png" alt="Página Minha conta"><figcaption>Figura 28. Página Minha conta</figcaption></figure>
+<ol class="marcas"><li><strong>Nome</strong>.</li><li><strong>Nome de usuário</strong>: o que você digita para entrar. Sem espaços.</li><li><strong>Senha atual</strong>: o sistema pede para confirmar que é você.</li><li><strong>Salvar alterações</strong>. Confirme com <strong>Sim</strong>.</li><li>Na parte de baixo, para trocar a senha: <strong>senha atual</strong>.</li><li><strong>Nova senha</strong>, com pelo menos 8 caracteres e diferente da usada hoje.</li><li><strong>Repita a nova senha</strong>.</li><li><strong>Trocar senha</strong>. Confirme com <strong>Sim</strong>.</li></ol>
+<p>Depois de mudar o usuário, use o novo na próxima vez que entrar.</p>
+<h1>11. Cuidados no dia a dia</h1>
+<ul><li><strong>Saia do sistema</strong> quando se afastar do computador. Use o botão <strong>Sair</strong>.</li><li><strong>Não passe a sua senha</strong> para outras pessoas. Se alguém for substituir você, combine com quem cuida do sistema para trocar a senha depois.</li><li><strong>CPF e telefone são dados pessoais.</strong> Não tire foto da tela, não mande a lista de leitores por aplicativos de mensagem e guarde com cuidado os relatórios impressos ou em PDF.</li><li><strong>Prefira inativar a excluir.</strong> Excluir apaga o cadastro para sempre. Inativar tira a pessoa das buscas e mantém o histórico.</li><li><strong>Confira as perguntas de confirmação.</strong> Leia o nome do livro e do leitor antes de clicar em <strong>Sim</strong>.</li><li><strong>Cópia de segurança (backup).</strong> O sistema tem um programa que copia o banco de dados para um lugar seguro. Pergunte de tempos em tempos para quem instalou o sistema se as cópias estão sendo feitas.</li><li><strong>Desligue o computador do jeito normal</strong>, sem puxar da tomada, para não danificar os dados.</li></ul>
+<h1 class="continua">12. Mensagens que podem aparecer</h1>
+<p>Estas são as mensagens mais comuns e o que fazer em cada uma.</p>
+<table><thead><tr><th style="width:50%">Mensagem</th><th style="width:50%">O que fazer</th></tr></thead><tbody><tr><td>Usuário ou senha incorretos.</td><td>Confira o usuário e a senha e tente de novo. Se esquecer, veja a seção 2.4.</td></tr><tr><td>Muitas tentativas erradas. Aguarde 60 segundos...</td><td>Espere o tempo indicado e tente de novo.</td></tr><tr><td>Sua sessão expirou. Entre de novo para continuar.</td><td>O sistema ficou 30 minutos parado. Entre de novo e refaça o que estava fazendo.</td></tr><tr><td>Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro.</td><td>Registre a devolução do livro que o leitor está com ele e depois faça o novo empréstimo.</td></tr><tr><td>Este livro não tem exemplares disponíveis no momento.</td><td>Faça uma reserva em vez de um empréstimo.</td></tr><tr><td>Este usuário está inativo.</td><td>Reative o cadastro em Usuários, Mostrar inativos, Reativar.</td></tr><tr><td>Já existe um usuário cadastrado com este CPF.</td><td>A pessoa já tem cadastro. Procure o nome na lista de usuários.</td></tr><tr><td>Este CPF pertence a um usuário inativo.</td><td>Clique em Reativar este usuário.</td></tr><tr><td>Informe um CPF válido, com 11 dígitos.</td><td>Confira os números do CPF com o documento do leitor.</td></tr><tr><td>Informe um telefone válido com DDD...</td><td>Digite o telefone com o DDD, no formato (77) 99999-9999 ou (77) 3333-3333.</td></tr><tr><td>Informe um e-mail válido.</td><td>Confira o e-mail ou deixe o campo em branco, pois ele é opcional.</td></tr><tr><td>Já existe um livro com este ISBN.</td><td>Não cadastre de novo. Edite o livro que já existe e aumente a quantidade.</td></tr><tr><td>Não foi possível encontrar dados para esse ISBN agora.</td><td>Sem internet ou livro não encontrado. Preencha os campos à mão.</td></tr><tr><td>Este livro tem empréstimos ou reservas registrados e não pode ser excluído.</td><td>O histórico precisa ser mantido. Se o livro saiu do acervo, edite a quantidade.</td></tr><tr><td>Este usuário está com livro emprestado ou reserva ativa e não pode ser excluído.</td><td>Registre a devolução ou cancele a reserva, e depois tente de novo.</td></tr><tr><td>O período não pode ser maior que 1 ano.</td><td>Escolha um período menor e gere o relatório de novo.</td></tr></tbody></table>
+<h1>13. Resumo rápido</h1>
+<p>Onde clicar para as tarefas de todo dia:</p>
+<table><thead><tr><th style="width:50%">Quero...</th><th style="width:50%">Vá em...</th></tr></thead><tbody><tr><td>Emprestar um livro</td><td>Empréstimos, aba Realizar empréstimo</td></tr><tr><td>Receber um livro de volta</td><td>Devoluções, Registrar devolução</td></tr><tr><td>Reservar um livro que está emprestado</td><td>Empréstimos, aba Reservas</td></tr><tr><td>Avisar um leitor que o livro reservado chegou</td><td>Empréstimos, aba Reservas, Avisar por WhatsApp</td></tr><tr><td>Entregar o livro reservado</td><td>Empréstimos, aba Reservas, Registrar retirada</td></tr><tr><td>Cadastrar um livro novo</td><td>Livros, aba Cadastrar livro</td></tr><tr><td>Cadastrar um leitor novo</td><td>Usuários, aba Cadastrar usuário</td></tr><tr><td>Mudar o telefone de um leitor</td><td>Usuários, Editar</td></tr><tr><td>Ver quem está com devolução atrasada</td><td>Relatórios, aba Empréstimos em atraso</td></tr><tr><td>Tirar o relatório do mês em PDF</td><td>Relatórios, escolher as datas, Gerar relatório, Baixar PDF</td></tr><tr><td>Trocar minha senha</td><td>Minha conta</td></tr></tbody></table></body></html>
