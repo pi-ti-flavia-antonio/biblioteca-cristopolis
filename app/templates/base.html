@@ -29,6 +29,17 @@
                 {{ nav_link('devolucoes', url_for('devolucoes.consultar'), 'Devoluções') }}
                 {{ nav_link('relatorios', url_for('relatorios.periodo'), 'Relatórios') }}
             </ul>
+
+            {% if funcionaria %}
+            <div class="sidebar__conta">
+                <p class="sidebar__usuario">{{ funcionaria.nome }}</p>
+                <a href="{{ url_for('auth.minha_conta') }}" class="sidebar__link">Minha conta</a>
+                <form method="post" action="{{ url_for('auth.sair') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="sidebar__link sidebar__sair">Sair</button>
+                </form>
+            </div>
+            {% endif %}
         </nav>
 
         <div class="main">

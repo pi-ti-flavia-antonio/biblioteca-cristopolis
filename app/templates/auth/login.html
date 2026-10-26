@@ -1,0 +1,32 @@
+{% extends "auth/base_simples.html" %}
+
+{% block titulo %}Entrar | Biblioteca Cristópolis{% endblock %}
+
+{% block conteudo %}
+<h1 class="entrada__titulo">Entrar no sistema</h1>
+
+{% if erro %}
+<div class="alert alert--error" role="alert">{{ erro }}</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('auth.login') }}" class="form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="proximo" value="{{ proximo }}">
+
+    <div class="field">
+        <label for="login">Usuário</label>
+        <input id="login" name="login" type="text" value="{{ login }}" class="input" autocomplete="username" autofocus>
+    </div>
+
+    <div class="field">
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" class="input" autocomplete="current-password">
+    </div>
+
+    <div class="form__actions">
+        <button type="submit" class="button button--primary">Entrar</button>
+    </div>
+</form>
+
+<p class="field__hint">Esqueceu a senha? Peça a quem cuida do sistema para rodar o arquivo redefinir_senha.py no computador da biblioteca.</p>
+{% endblock %}

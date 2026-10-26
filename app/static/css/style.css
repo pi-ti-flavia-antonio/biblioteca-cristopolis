@@ -843,3 +843,68 @@ button:focus-visible,
     gap: 0.75rem;
     margin-top: 1.5rem;
 }
+
+/* Conta no menu lateral */
+.sidebar__conta {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar__usuario {
+    padding: 0 0.75rem 0.25rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    overflow-wrap: anywhere;
+}
+
+.sidebar__sair {
+    width: 100%;
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar__sair:focus-visible {
+    outline: 2px solid #fff;
+}
+
+/* Telas de entrada (login e primeiro acesso) */
+.entrada {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    background-color: var(--color-bg);
+}
+
+.entrada__cartao {
+    width: min(26rem, 100%);
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.entrada__marca {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.entrada__titulo {
+    font-size: 1.3rem;
+    font-weight: 600;
+}

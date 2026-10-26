@@ -1,0 +1,38 @@
+{% extends "auth/base_simples.html" %}
+
+{% macro campo(nome, rotulo, tipo="text", ajuda="", foco=False, autocomplete="off") -%}
+    <div class="field">
+        <label for="{{ nome }}">{{ rotulo }} <span class="field__required" title="Obrigatório">*</span></label>
+        <input id="{{ nome }}" name="{{ nome }}" type="{{ tipo }}" class="input{% if erros[nome] %} input--error{% endif %}"
+               {%- if tipo != "password" %} value="{{ valores[nome] }}"{% endif %}
+               autocomplete="{{ autocomplete }}"
+               {%- if foco %} autofocus{% endif %}
+               {%- if erros[nome] %} aria-invalid="true" aria-describedby="{{ nome }}-msg"
+               {%- elif ajuda %} aria-describedby="{{ nome }}-msg"{% endif %}>
+        {% if erros[nome] %}
+        <p class="field__error" id="{{ nome }}-msg">{{ erros[nome] }}</p>
+        {% elif ajuda %}
+        <p class="field__hint" id="{{ nome }}-msg">{{ ajuda }}</p>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% block titulo %}Primeiro acesso | Biblioteca Cristópolis{% endblock %}
+
+{% block conteudo %}
+<h1 class="entrada__titulo">Primeiro acesso</h1>
+<p class="panel__text">Crie a conta que vai usar para entrar no sistema. Anote a senha em um lugar seguro: ela não pode ser recuperada, só trocada.</p>
+
+<form method="post" class="form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {{ campo("nome", "Seu nome", foco=True, autocomplete="name") }}
+    {{ campo("login", "Nome de usuário", ajuda="Sem espaços. É o que você digita para entrar.", autocomplete="username") }}
+    {{ campo("senha", "Senha", tipo="password", ajuda="Pelo menos 8 caracteres.", autocomplete="new-password") }}
+    {{ campo("confirmacao", "Repita a senha", tipo="password", autocomplete="new-password") }}
+
+    <div class="form__actions">
+        <button type="submit" class="button button--primary">Criar conta e entrar</button>
+    </div>
+</form>
+{% endblock %}

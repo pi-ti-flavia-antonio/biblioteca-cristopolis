@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% macro campo(prefixo, erros, nome, rotulo, tipo="text", valor="", ajuda="", foco=False, autocomplete="off") -%}
+    <div class="field">
+        <label for="{{ prefixo }}-{{ nome }}">{{ rotulo }} <span class="field__required" title="Obrigatório">*</span></label>
+        <input id="{{ prefixo }}-{{ nome }}" name="{{ nome }}" type="{{ tipo }}" class="input{% if erros[nome] %} input--error{% endif %}"
+               {%- if tipo != "password" %} value="{{ valor }}"{% endif %}
+               autocomplete="{{ autocomplete }}"
+               {%- if foco %} autofocus{% endif %}
+               {%- if erros[nome] %} aria-invalid="true" aria-describedby="{{ prefixo }}-{{ nome }}-msg"
+               {%- elif ajuda %} aria-describedby="{{ prefixo }}-{{ nome }}-msg"{% endif %}>
+        {% if erros[nome] %}
+        <p class="field__error" id="{{ prefixo }}-{{ nome }}-msg">{{ erros[nome] }}</p>
+        {% elif ajuda %}
+        <p class="field__hint" id="{{ prefixo }}-{{ nome }}-msg">{{ ajuda }}</p>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% block titulo %}Minha conta | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Minha conta{% endblock %}
+{% block pagina_subtitulo %}Nome, usuário e senha de acesso ao sistema{% endblock %}
+
+{% block conteudo %}
+<section class="panel panel--narrow" aria-labelledby="dados-heading">
+    <h2 id="dados-heading">Nome e usuário</h2>
+
+    <form method="post" action="{{ url_for('auth.alterar_dados_da_conta') }}" class="form" novalidate data-confirmar="Salvar as alterações da conta?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {{ campo("dados", erros_dados, "nome", "Nome", valor=valores.nome, autocomplete="name") }}
+        {{ campo("dados", erros_dados, "login", "Nome de usuário", valor=valores.login, ajuda="Sem espaços. É o que você digita para entrar.", autocomplete="username") }}
+        {{ campo("dados", erros_dados, "senha_atual", "Senha atual", tipo="password", ajuda="Digite a senha para confirmar a mudança.", autocomplete="current-password") }}
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Salvar alterações</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel panel--narrow" aria-labelledby="senha-heading">
+    <h2 id="senha-heading">Trocar senha</h2>
+
+    <form method="post" action="{{ url_for('auth.trocar_senha') }}" class="form" novalidate data-confirmar="Trocar a senha?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {{ campo("senha", erros_senha, "senha_atual", "Senha atual", tipo="password", autocomplete="current-password") }}
+        {{ campo("senha", erros_senha, "senha", "Nova senha", tipo="password", ajuda="Pelo menos 8 caracteres.", autocomplete="new-password") }}
+        {{ campo("senha", erros_senha, "confirmacao", "Repita a nova senha", tipo="password", autocomplete="new-password") }}
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Trocar senha</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

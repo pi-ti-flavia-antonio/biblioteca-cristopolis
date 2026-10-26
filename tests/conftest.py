@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 import pytest
+from werkzeug.security import generate_password_hash
 
 from app import create_app
 from app.database import get_db
@@ -8,6 +9,10 @@ from app.livros import repository
 from app.usuarios import repository as usuarios_repository
 
 TOKEN = "token-de-teste"
+LOGIN_DE_TESTE = "funcionaria"
+SENHA_DE_TESTE = "senha-de-teste"
+# O hash é feito uma vez só: gerar um por teste deixaria a suíte lenta.
+_HASH_DE_TESTE = generate_password_hash(SENHA_DE_TESTE)
 
 
 @pytest.fixture
@@ -16,7 +21,29 @@ def app(tmp_path):
 
 
 @pytest.fixture
-def client(app):
+def id_funcionaria(app):
+    """Cria a conta de acesso direto no banco, sem passar pela tela de primeiro acesso."""
+    with app.app_context():
+        db = get_db()
+        with db:
+            return db.execute(
+                "INSERT INTO funcionario (nome, cargo, login, senha_hash) VALUES (?, ?, ?, ?)",
+                ("Funcionária de Teste", "Bibliotecária", LOGIN_DE_TESTE, _HASH_DE_TESTE),
+            ).lastrowid
+
+
+@pytest.fixture
+def client(app, id_funcionaria):
+    """Cliente já logado, para os testes que não tratam de login."""
+    cliente = app.test_client()
+    with cliente.session_transaction() as sessao:
+        sessao["id_funcionario"] = id_funcionaria
+        sessao.permanent = True
+    return cliente
+
+
+@pytest.fixture
+def client_anonimo(app):
     return app.test_client()
 
 

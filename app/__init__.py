@@ -1,10 +1,11 @@
 import os
 import secrets
+from datetime import timedelta
 from pathlib import Path
 
 from flask import Flask, render_template
 
-from . import database, security
+from . import auth, database, security
 from .texto import formatar_cpf, formatar_data, formatar_telefone, mascarar_cpf
 
 MENSAGENS_ERRO = {
@@ -19,11 +20,14 @@ def create_app(config=None):
         SECRET_KEY=os.environ.get("BIBLIOTECA_SECRET_KEY") or secrets.token_hex(32),
         DATABASE=Path(app.root_path).parent / "data" / "biblioteca.db",
         SESSION_COOKIE_SAMESITE="Lax",
+        PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
     )
     if config:
         app.config.update(config)
 
     database.init_app(app)
+    # O login vem antes do CSRF: uma sessão que expirou leva à tela de entrada, não a um erro 400.
+    auth.init_app(app)
     security.init_app(app)
     app.jinja_env.filters["cpf"] = formatar_cpf
     app.jinja_env.filters["telefone"] = formatar_telefone
