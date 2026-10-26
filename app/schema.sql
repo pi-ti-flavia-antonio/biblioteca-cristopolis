@@ -23,8 +23,11 @@ CREATE TABLE IF NOT EXISTS usuario (
     telefone     TEXT,
     email        TEXT,
     endereco     TEXT,
-    tipo_usuario TEXT
+    tipo_usuario TEXT,
+    ativo        INTEGER NOT NULL DEFAULT 1
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_cpf ON usuario (cpf) WHERE cpf IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS funcionario (
     id_funcionario INTEGER PRIMARY KEY AUTOINCREMENT,

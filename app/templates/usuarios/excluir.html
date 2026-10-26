@@ -6,22 +6,49 @@
 
 {% block conteudo %}
 <section class="panel panel--narrow" aria-labelledby="excluir-heading">
-    <h2 id="excluir-heading">Excluir usuário</h2>
+    <h2 id="excluir-heading">{{ "Excluir usuário" if situacao == "livre" else "Remover usuário" }}</h2>
 
     <p class="panel__text">
-        <strong>{{ usuario.nome }}</strong>, CPF {{ usuario.cpf | cpf }}.
+        <strong>{{ usuario.nome }}</strong>, CPF {{ usuario.cpf | cpf_mascarado }}.
     </p>
 
-    {% if total_emprestimos > 0 %}
+    {% if situacao == "pendencia" %}
     <div class="alert alert--error" role="alert">
-        Este usuário tem {{ total_emprestimos }} {{ "empréstimo registrado" if total_emprestimos == 1 else "empréstimos registrados" }}
-        e não pode ser excluído.
+        Este usuário está com {{ emprestimos_ativos }} {{ "pendência" if emprestimos_ativos == 1 else "pendências" }}
+        (livro emprestado ou reserva ativa) e não pode ser excluído nem inativado. Registre a devolução ou cancele a reserva primeiro.
     </div>
     <div class="form__actions">
         <a href="{{ url_for('usuarios.consultar') }}" class="button button--primary">Voltar aos usuários</a>
     </div>
+
+    {% elif situacao == "historico" %}
+    {% if usuario.ativo %}
+    <p class="panel__text">
+        Este usuário já teve empréstimos ou reservas, e esse histórico aparece nos relatórios. Por isso ele não pode ser excluído.
+    </p>
+    <p class="panel__text">
+        Tem certeza que deseja inativar o usuário <strong>{{ usuario.nome }}</strong>?
+        Ele deixa de aparecer nas buscas de empréstimo e reserva, mas o histórico fica guardado e o cadastro pode ser reativado depois.
+    </p>
+    <form method="post" action="{{ url_for('usuarios.inativar', usuario_id=usuario.id_usuario) }}" class="form__actions">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button--danger">Sim, inativar</button>
+        <a href="{{ url_for('usuarios.consultar') }}" class="button button--secondary">Cancelar</a>
+    </form>
     {% else %}
-    <p class="panel__text">Depois de excluído, o usuário não pode ser recuperado. Deseja continuar?</p>
+    <p class="panel__text">
+        Este usuário já está inativo e tem histórico, então não pode ser excluído. Ele pode ser reativado na lista de usuários.
+    </p>
+    <div class="form__actions">
+        <a href="{{ url_for('usuarios.consultar', inativos=1) }}" class="button button--primary">Voltar aos usuários</a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <p class="panel__text">
+        Tem certeza que deseja excluir o usuário <strong>{{ usuario.nome }}</strong>?
+        Depois de excluído, ele não pode ser recuperado.
+    </p>
     <form method="post" class="form__actions">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="button button--danger">Sim, excluir</button>

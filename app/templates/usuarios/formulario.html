@@ -54,6 +54,16 @@
     </div>
     {% endif %}
 
+    {% if cpf_inativo %}
+    <div class="alert alert--info" role="alert">
+        <p>Este CPF pertence a um usuário inativo: <strong>{{ cpf_inativo.nome }}</strong>.</p>
+        <form method="post" action="{{ url_for('usuarios.reativar', usuario_id=cpf_inativo.id_usuario) }}" class="form__actions" data-confirmar="Reativar este usuário?" data-confirmar-detalhe="{{ cpf_inativo.nome }} volta a aparecer nas buscas de empréstimo e reserva.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="button button--primary">Reativar este usuário</button>
+        </form>
+    </div>
+    {% endif %}
+
     <form method="post" class="form" novalidate data-confirmar="{{ 'Salvar as alterações do usuário?' if usuario_id else 'Confirmar cadastro do usuário?' }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="voltar" value="{{ voltar }}">

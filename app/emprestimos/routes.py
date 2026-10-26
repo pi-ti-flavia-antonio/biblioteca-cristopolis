@@ -75,6 +75,9 @@ def cadastrar():
     except repository.UsuarioComPendencia:
         erros["id_usuario"] = "Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro."
         return _formulario(erros, id_usuario, id_livro)
+    except repository.UsuarioInativo:
+        erros["id_usuario"] = "Este usuário está inativo. Reative o cadastro dele na lista de usuários para registrar empréstimos e reservas."
+        return _formulario(erros, id_usuario, id_livro)
 
     flash(f"Empréstimo registrado. Devolução prevista para {prevista.strftime('%d/%m/%Y')}.", "success")
     return redirect(url_for("emprestimos.cadastrar"))
@@ -120,6 +123,9 @@ def reservas():
     except reservas_repository.ReservaDuplicada:
         erros["id_usuario"] = "Este usuário já tem uma reserva ativa para este livro."
         return _reservas(erros, id_usuario, id_livro)
+    except repository.UsuarioInativo:
+        erros["id_usuario"] = "Este usuário está inativo. Reative o cadastro dele na lista de usuários para registrar empréstimos e reservas."
+        return _reservas(erros, id_usuario, id_livro)
 
     flash("Reserva registrada.", "success")
     return redirect(url_for("emprestimos.reservas"))
@@ -147,6 +153,9 @@ def reservas_retirar(id_reserva):
         return redirect(url_for("emprestimos.reservas"))
     except repository.UsuarioComPendencia:
         flash("Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro.", "error")
+        return redirect(url_for("emprestimos.reservas"))
+    except repository.UsuarioInativo:
+        flash("Este usuário está inativo. Reative o cadastro dele na lista de usuários.", "error")
         return redirect(url_for("emprestimos.reservas"))
 
     flash(f"Empréstimo registrado a partir da reserva. Devolução prevista para {prevista.strftime('%d/%m/%Y')}.", "success")

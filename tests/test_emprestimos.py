@@ -384,7 +384,7 @@ def test_sugestoes_do_historico_sem_termo_voltam_vazias(client):
 def test_as_quatro_barras_de_consulta_tem_sugestoes(client):
     esperado = {
         "/livros": 'data-url="/livros/sugestoes"',
-        "/usuarios": 'data-url="/usuarios/sugestoes"',
+        "/usuarios": 'data-url="/usuarios/sugestoes?inativos=1"',
         "/emprestimos": 'data-url="/emprestimos/sugestoes"',
         "/devolucoes": 'data-url="/emprestimos/sugestoes?ativos=1"',
     }

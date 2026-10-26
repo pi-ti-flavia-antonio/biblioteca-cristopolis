@@ -13,16 +13,22 @@
         ({{ livro.quantidade_total }} {{ "exemplar" if livro.quantidade_total == 1 else "exemplares" }}).
     </p>
 
-    {% if total_emprestimos > 0 %}
+    {% if total_emprestimos > 0 or total_reservas > 0 %}
     <div class="alert alert--error" role="alert">
-        Este livro tem {{ total_emprestimos }} {{ "empréstimo registrado" if total_emprestimos == 1 else "empréstimos registrados" }}
+        Este livro tem
+        {% if total_emprestimos > 0 %}{{ total_emprestimos }} {{ "empréstimo registrado" if total_emprestimos == 1 else "empréstimos registrados" }}{% endif %}
+        {%- if total_emprestimos > 0 and total_reservas > 0 %} e {% endif %}
+        {%- if total_reservas > 0 %}{{ total_reservas }} {{ "reserva registrada" if total_reservas == 1 else "reservas registradas" }}{% endif %}
         e não pode ser excluído. Se ele saiu do acervo, edite a quantidade.
     </div>
     <div class="form__actions">
         <a href="{{ url_for('livros.consultar') }}" class="button button--primary">Voltar ao acervo</a>
     </div>
     {% else %}
-    <p class="panel__text">Depois de excluído, o livro não pode ser recuperado. Deseja continuar?</p>
+    <p class="panel__text">
+        Tem certeza que deseja excluir o livro <strong>{{ livro.titulo }}</strong>?
+        Depois de excluído, ele não pode ser recuperado.
+    </p>
     <form method="post" class="form__actions">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="button button--danger">Sim, excluir</button>

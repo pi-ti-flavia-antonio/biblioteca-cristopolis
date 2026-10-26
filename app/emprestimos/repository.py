@@ -23,6 +23,10 @@ class LivroIndisponivel(Exception):
     """O livro não tem exemplares disponíveis no momento."""
 
 
+class UsuarioInativo(Exception):
+    """O usuário não existe ou está inativo e não pode pegar livros nem reservar."""
+
+
 class UsuarioComPendencia(Exception):
     """O usuário já está com um exemplar emprestado."""
 
@@ -225,6 +229,11 @@ def livro_disponivel(id_livro):
     return linha["disponivel"] if linha else None
 
 
+def usuario_ativo(id_usuario):
+    linha = get_db().execute("SELECT ativo FROM usuario WHERE id_usuario = ?", (id_usuario,)).fetchone()
+    return bool(linha and linha["ativo"])
+
+
 def usuario_tem_pendencia(id_usuario):
     linha = get_db().execute(
         "SELECT COUNT(*) FROM emprestimo WHERE id_usuario = ? AND status = 'ativo'",
@@ -234,6 +243,8 @@ def usuario_tem_pendencia(id_usuario):
 
 
 def criar(id_usuario, id_livro):
+    if not usuario_ativo(id_usuario):
+        raise UsuarioInativo(id_usuario)
     disponivel = livro_disponivel(id_livro)
     if disponivel is None or disponivel <= 0:
         raise LivroIndisponivel(id_livro)

@@ -39,7 +39,7 @@ _SELECT_LIVROS = """
 
 
 class LivroComEmprestimos(Exception):
-    """Livro com histórico de empréstimos não pode ser excluído."""
+    """Livro com empréstimos ou reservas registrados não pode ser excluído."""
 
 
 def _escapar_like(texto):
@@ -128,6 +128,12 @@ def contar_emprestimos(id_livro):
     ).fetchone()[0]
 
 
+def contar_reservas(id_livro):
+    return get_db().execute(
+        "SELECT COUNT(*) FROM reserva WHERE id_livro = ?", (id_livro,)
+    ).fetchone()[0]
+
+
 def _resolver_categoria(db, nome):
     if not nome:
         return None
@@ -173,7 +179,7 @@ def atualizar(id_livro, dados):
 
 
 def excluir(id_livro):
-    if contar_emprestimos(id_livro) > 0:
+    if contar_emprestimos(id_livro) > 0 or contar_reservas(id_livro) > 0:
         raise LivroComEmprestimos(id_livro)
     db = get_db()
     with db:

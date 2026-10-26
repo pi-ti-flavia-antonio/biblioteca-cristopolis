@@ -170,12 +170,13 @@ def excluir(id_livro):
             "livros/excluir.html",
             livro=livro,
             total_emprestimos=repository.contar_emprestimos(id_livro),
+            total_reservas=repository.contar_reservas(id_livro),
         )
 
     try:
         repository.excluir(id_livro)
     except repository.LivroComEmprestimos:
-        flash("Este livro tem empréstimos registrados e não pode ser excluído.", "error")
+        flash("Este livro tem empréstimos ou reservas registrados e não pode ser excluído.", "error")
     else:
         flash(f"Livro excluído: {livro['titulo']}.", "success")
     return redirect(url_for("livros.consultar"))

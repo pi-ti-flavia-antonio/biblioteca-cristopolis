@@ -2,7 +2,7 @@ from datetime import date
 
 from ..database import get_db
 from ..texto import link_whatsapp
-from .repository import LivroIndisponivel
+from .repository import LivroIndisponivel, UsuarioInativo, usuario_ativo
 from .repository import criar as criar_emprestimo
 from .repository import livro_disponivel
 
@@ -94,6 +94,8 @@ def _tem_reserva_ativa(id_usuario, id_livro):
 
 
 def criar(id_usuario, id_livro):
+    if not usuario_ativo(id_usuario):
+        raise UsuarioInativo(id_usuario)
     disponivel = livro_disponivel(id_livro)
     if disponivel is None:
         raise LivroIndisponivel(id_livro)

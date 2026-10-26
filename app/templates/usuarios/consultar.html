@@ -11,7 +11,19 @@
 <section class="panel" aria-labelledby="usuarios-heading">
     <h2 id="usuarios-heading" class="visually-hidden">Usuários</h2>
 
-    {{ barra_busca(url_for('usuarios.sugestoes'), "usuário", "Buscar usuário", "Buscar por nome ou CPF", termo, url_for('usuarios.consultar')) }}
+    {{ barra_busca(url_for('usuarios.sugestoes', inativos=1), "usuário", "Buscar usuário", "Buscar por nome ou CPF", termo, url_for('usuarios.consultar')) }}
+
+    <p class="panel__text">
+        {% if so_inativos %}
+        Só há cadastros inativos para esta busca.
+        {% endif %}
+        {% if incluir_inativos and not so_inativos %}
+        Mostrando também os usuários inativos.
+        <a class="link-action" href="{{ url_for('usuarios.consultar', q=termo or None) }}">Ocultar inativos</a>
+        {% elif not so_inativos %}
+        <a class="link-action" href="{{ url_for('usuarios.consultar', q=termo or None, inativos=1) }}">Mostrar inativos</a>
+        {% endif %}
+    </p>
 
     <div class="table-wrapper">
         <table class="table">
@@ -28,7 +40,7 @@
                 {% for usuario in usuarios %}
                 <tr>
                     <td>
-                        <span class="table__title">{{ usuario.nome }}</span>
+                        <span class="table__title">{{ usuario.nome }}{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</span>
                         {% if usuario.email %}<span class="table__subtitle">{{ usuario.email }}</span>{% endif %}
                     </td>
                     <td class="table__nowrap">{{ usuario.cpf | cpf_mascarado }}</td>
@@ -36,7 +48,14 @@
                     <td>{{ usuario.tipo_usuario or "-" }}</td>
                     <td class="table__actions">
                         <a class="link-action" href="{{ url_for('usuarios.editar', usuario_id=usuario.id_usuario) }}">Editar</a>
+                        {% if usuario.ativo %}
                         <a class="link-action link-action--danger" href="{{ url_for('usuarios.excluir', usuario_id=usuario.id_usuario) }}">Excluir</a>
+                        {% else %}
+                        <form method="post" action="{{ url_for('usuarios.reativar', usuario_id=usuario.id_usuario) }}" class="link-action-form" data-confirmar="Reativar este usuário?" data-confirmar-detalhe="{{ usuario.nome }} volta a aparecer nas buscas de empréstimo e reserva.">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="link-action-button">Reativar</button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}
@@ -61,10 +80,10 @@
         {% if total_paginas > 1 %}
         <div class="pagination__links">
             {% if pagina > 1 %}
-            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, pagina=pagina - 1) }}">Anterior</a>
+            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, inativos=1 if incluir_inativos and not so_inativos else None, pagina=pagina - 1) }}">Anterior</a>
             {% endif %}
             {% if pagina < total_paginas %}
-            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, pagina=pagina + 1) }}">Próxima</a>
+            <a class="button button--secondary button--small" href="{{ url_for('usuarios.consultar', q=termo or None, inativos=1 if incluir_inativos and not so_inativos else None, pagina=pagina + 1) }}">Próxima</a>
             {% endif %}
         </div>
         {% endif %}

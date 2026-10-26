@@ -78,3 +78,19 @@ def test_cancelar_reserva_pede_confirmacao_destacada(
 
     assert 'data-confirmar="Cancelar esta reserva?"' in pagina
     assert "data-confirmar-perigo" in pagina
+
+
+def test_excluir_usuario_pergunta_pelo_nome(client, criar_usuario):
+    id_usuario = criar_usuario("Camila Rodrigues Prado")
+
+    pagina = html(client.get(f"/usuarios/{id_usuario}/excluir"))
+
+    assert "Tem certeza que deseja excluir o usuário <strong>Camila Rodrigues Prado</strong>?" in pagina
+
+
+def test_excluir_livro_pergunta_pelo_titulo(client, criar_livro):
+    id_livro = criar_livro("O Faroleiro de Cristópolis")
+
+    pagina = html(client.get(f"/livros/{id_livro}/excluir"))
+
+    assert "Tem certeza que deseja excluir o livro <strong>O Faroleiro de Cristópolis</strong>?" in pagina
