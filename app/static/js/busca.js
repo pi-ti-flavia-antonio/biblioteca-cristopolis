@@ -231,6 +231,34 @@
         });
     }
 
+    // Campo com lista de opções (datalist): com um valor já escolhido, o navegador só mostra as opções que
+    // combinam com ele. Ao clicar na seta, ou apertar a seta para baixo, o valor é guardado e o campo
+    // esvazia por um instante para a lista mostrar tudo. Se nada for escolhido, o valor volta ao sair do campo.
+    function iniciarListaCompleta(campo) {
+        function mostrarTodas() {
+            if (campo.value && campo.dataset.anterior === undefined) {
+                campo.dataset.anterior = campo.value;
+                campo.value = "";
+            }
+        }
+        campo.addEventListener("mousedown", function (evento) {
+            var caixa = campo.getBoundingClientRect();
+            if (evento.clientX >= caixa.right - 30) mostrarTodas();
+        });
+        campo.addEventListener("keydown", function (evento) {
+            if (evento.key === "ArrowDown" || evento.key === "ArrowUp") mostrarTodas();
+        });
+        campo.addEventListener("blur", function () {
+            if (campo.dataset.anterior !== undefined) {
+                if (!campo.value) campo.value = campo.dataset.anterior;
+                delete campo.dataset.anterior;
+            }
+        });
+    }
+
+    var camposComLista = document.querySelectorAll("input[data-lista-completa]");
+    for (var k = 0; k < camposComLista.length; k++) iniciarListaCompleta(camposComLista[k]);
+
     var escolhas = document.querySelectorAll("[data-busca]");
     for (var i = 0; i < escolhas.length; i++) iniciarEscolha(escolhas[i]);
 

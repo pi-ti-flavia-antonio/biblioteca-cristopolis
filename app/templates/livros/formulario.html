@@ -5,7 +5,7 @@
         <label for="{{ nome }}">{{ rotulo }}{% if obrigatorio %} <span class="field__required" title="Obrigatório">*</span>{% endif %}</label>
         <input id="{{ nome }}" name="{{ nome }}" type="{{ tipo }}" value="{{ valores[nome] }}"
                class="input{% if erros[nome] %} input--error{% endif %}"
-               {%- if lista %} list="{{ lista }}"{% endif %}
+               {%- if lista %} list="{{ lista }}" data-lista-completa{% endif %}
                {%- if minimo is not none %} min="{{ minimo }}"{% endif %}
                {%- if maximo is not none %} max="{{ maximo }}"{% endif %}
                {%- if tamanho_max %} maxlength="{{ tamanho_max }}"{% endif %}

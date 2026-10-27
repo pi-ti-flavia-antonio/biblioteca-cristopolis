@@ -402,3 +402,10 @@ def test_edicao_continua_mostrando_a_quantidade_do_livro(client, criar_livro):
     id_livro = criar_livro("Dom Casmurro", quantidade=7)
 
     assert 'name="quantidade" type="number" value="7"' in html(client.get(f"/livros/{id_livro}/editar"))
+
+
+def test_campo_de_categoria_mostra_todas_as_opcoes_mesmo_com_valor(client):
+    pagina = client.get("/livros/novo").get_data(as_text=True)
+
+    assert 'list="categorias"' in pagina
+    assert "data-lista-completa" in pagina
