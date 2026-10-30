@@ -22,9 +22,11 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 
 - **Backend:** Python com Flask
 - **Interface:** HTML gerado com templates Jinja e CSS responsivo. O JavaScript se limita a dois trechos: as sugestões enquanto se digita (em todas as barras de busca e nos campos de usuário e livro de empréstimos e reservas) e o aviso de geração do PDF na tela de relatórios
-- **Banco de dados:** SQLite, salvo localmente em `data/biblioteca.db`
+- **Banco de dados:** SQLite, salvo localmente em `data/biblioteca.db` (ou em `%LOCALAPPDATA%\BibliotecaCristopolis\data` quando o sistema roda como executável)
 - **Janela do sistema:** pywebview, que exibe o sistema como programa, sem barra de endereço
 - **Bibliotecas auxiliares:** requests (busca por ISBN) e reportlab (geração do PDF)
+- **Backup:** cryptography (Fernet) e as bibliotecas do Google para a API do Drive
+- **Executável para Windows:** PyInstaller (opcional, só para gerar o `.exe`)
 
 ## Principais decisões de desenvolvimento
 
@@ -34,6 +36,7 @@ O sistema abre como um programa de mesa e funciona sem internet. A conexão só 
 - **Busca de dados por ISBN com APIs REST, opcional:** o protocolo Z39.50 exige uma biblioteca em C e depende de servidores públicos instáveis. Sem internet, o cadastro continua manual.
 - **Busca com sugestões ao digitar no empréstimo:** a lista suspensa com todos os usuários e livros ficava difícil de usar com um acervo grande. As sugestões vêm do servidor, que continua sendo a única fonte das regras, e o CPF aparece mascarado.
 - **Reservas em fila por ordem de chegada:** quando um exemplar volta, só a reserva mais antiga é sinalizada.
+- **Servidor só local:** o Flask aceita conexões apenas do próprio computador (`127.0.0.1`), sem modo de depuração, então o sistema não fica aberto para a rede.
 - **Acessibilidade:** HTML semântico (`nav`, `header`, `main`, um `h1` por página), campos com rótulo, avisos com `role`, item atual do menu marcado e link para pular ao conteúdo.
 
 ## Como instalar e usar
@@ -49,6 +52,18 @@ python main.py
 
 Isso abre a janela do sistema. O banco é criado sozinho na primeira execução.
 
+### Executável para Windows (opcional)
+
+Para rodar sem o Python instalado, o repositório traz as configurações do PyInstaller (`BibliotecaCristopolis.spec` para o sistema e `BackupBiblioteca.spec` para o backup):
+
+```bash
+pip install pyinstaller
+pyinstaller BibliotecaCristopolis.spec
+pyinstaller BackupBiblioteca.spec
+```
+
+Os executáveis saem em `dist/`, que não vai para o GitHub. **Atenção:** o executável guarda os dados em `%LOCALAPPDATA%\BibliotecaCristopolis\data`, e não na pasta do projeto. Quem já usa o sistema com Python precisa copiar o `biblioteca.db` e a chave de backup para lá antes da primeira abertura, senão começa com um banco vazio. Este caminho ainda precisa de validação em um computador limpo. Os detalhes e as limitações estão na [documentação técnica](docs/BACKUP_E_RESTAURACAO.md#10-executável-para-windows-pyinstaller).
+
 ## Testes
 
 ```bash
@@ -61,6 +76,7 @@ Os testes usam um banco temporário, então não mexem nos dados de `data/`.
 ## Organização do código
 
 - `main.py`: sobe o Flask em segundo plano e abre a janela do sistema
+- `caminhos.py`: define a pasta de dados e o caminho do banco, conforme o sistema rode com Python ou como executável
 - `app/__init__.py`: cria o app, configura o banco e registra os módulos
 - `app/schema.sql`: tabelas do banco, seguindo o Diagrama Entidade-Relacionamento do projeto
 - `app/security.py`: proteção contra requisições forjadas (token CSRF) em todos os formulários
@@ -69,6 +85,8 @@ Os testes usam um banco temporário, então não mexem nos dados de `data/`.
 - `app/templates/`: páginas HTML (`base.html` tem o menu lateral, as demais herdam dele)
 - `app/static/css/style.css`: estilos do sistema, com ajustes para telas menores
 - `tests/`: testes automatizados de cada módulo
+- `backup.py`, `criptografia.py`, `drive_backup.py`, `controle_backups.py`, `restaurar_drive.py`: backup criptografado, envio ao Google Drive e restauração (veja a seção Backup e recuperação)
+- `backup_main.py` e os arquivos `.spec`: geração dos executáveis para Windows
 
 
 ## Backup e recuperação
@@ -81,9 +99,12 @@ A implementação inclui:
 - Criptografia dos arquivos.
 - Integração com a Google Drive API.
 - Reenvio após falhas de conexão.
+- Envio para uma pasta definida do Drive, indicada pela variável de ambiente `BIBLIOTECA_DRIVE_FOLDER_ID`. **Sem ela o envio é recusado**: o backup criptografado fica pendente no computador e a execução termina com falha.
 - Retenção de até 7 backups locais já enviados.
-- Execução automática pelo Agendador de Tarefas do Windows.
+- Execução automática pelo Agendador de Tarefas do Windows, com o Python do projeto ou com o `BackupBiblioteca.exe`.
 - Procedimentos de recuperação e testes de integridade.
+
+O arquivo de credenciais do Google, o token, a chave de criptografia e os bancos não vão para o GitHub (estão no `.gitignore`).
 
 Para informações sobre instalação, bibliotecas, APIs, configuração
 e restauração, consulte a
