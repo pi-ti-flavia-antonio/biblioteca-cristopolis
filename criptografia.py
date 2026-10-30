@@ -2,8 +2,9 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-BASE_DIR = Path(__file__).resolve().parent
-ARQUIVO_CHAVE = BASE_DIR / "data" / "chave_backup.key"
+from caminhos import pasta_dados
+
+ARQUIVO_CHAVE = pasta_dados() / "chave_backup.key"
 
 
 def gerar_chave():

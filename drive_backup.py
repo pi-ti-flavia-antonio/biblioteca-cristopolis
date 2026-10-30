@@ -6,14 +6,29 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from caminhos import pasta_dados
+import sys
+import os
 
 
 BASE_DIR = Path(__file__).resolve().parent
 
-ARQUIVO_CREDENCIAIS = BASE_DIR / "client_secret.json"
-ARQUIVO_TOKEN = BASE_DIR / "token.json"
+ARQUIVO_CREDENCIAIS = (
+    pasta_dados().parent / "client_secret.json"
+    if getattr(sys, "frozen", False)
+    else BASE_DIR / "client_secret.json"
+)
+
+
+ARQUIVO_TOKEN = (
+    pasta_dados().parent / "token.json"
+    if getattr(sys, "frozen", False)
+    else BASE_DIR / "token.json"
+)
 
 ESCOPO = ["https://www.googleapis.com/auth/drive.file"]
+
+ID_PASTA_BACKUP = os.environ.get("BIBLIOTECA_DRIVE_FOLDER_ID")
 
 
 def conectar_google_drive():
@@ -65,7 +80,14 @@ def enviar_backup(servico, caminho_backup):
     metadados = {
         "name": caminho_backup.name,
         "mimeType": "application/octet-stream",
-    }
+}
+
+    if not ID_PASTA_BACKUP:
+        raise RuntimeError(
+            "A pasta de backup do Google Drive não foi configurada."
+        )
+
+    metadados["parents"] = [ID_PASTA_BACKUP]
 
     arquivo = MediaFileUpload(
         str(caminho_backup),
@@ -111,7 +133,7 @@ if __name__ == "__main__":
             caminho_backup.unlink(missing_ok=True)
 
     # 2. Localiza os backups criptografados pendentes
-    pasta_backups = BASE_DIR / "data" / "backups"
+    pasta_backups = pasta_dados() / "backups"
 
     falha_envio = False
 

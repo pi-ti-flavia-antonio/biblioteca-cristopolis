@@ -4,10 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from contextlib import closing
 
+from caminhos import caminho_banco, pasta_dados
 
-BASE_DIR = Path(__file__).resolve().parent
-BANCO_ORIGINAL = BASE_DIR / "data" / "biblioteca.db"
-PASTA_BACKUPS = BASE_DIR / "data" / "backups"
+BANCO_ORIGINAL = caminho_banco()
+PASTA_BACKUPS = pasta_dados() / "backups"
 
 
 

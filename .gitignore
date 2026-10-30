@@ -32,3 +32,20 @@ data/logs/
 .env
 .env.*
 !.env.example
+
+# Arquivos gerados pelo PyInstaller
+build/
+dist/
+
+# Executáveis e instaladores
+*.exe
+
+# Chaves de criptografia
+*.key
+
+# Credenciais e tokens do Google
+client_secret*.json
+token*.json
+
+# Arquivos de backup criptografados
+*.db.enc

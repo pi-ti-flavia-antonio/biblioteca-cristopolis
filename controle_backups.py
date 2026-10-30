@@ -1,12 +1,9 @@
 
 import json
 from pathlib import Path
+from caminhos import pasta_dados
 
-BASE_DIR = Path(__file__).resolve().parent
-
-ARQUIVO_CONTROLE = (
-    BASE_DIR / "data" / "controle_backups.json"
-)
+ARQUIVO_CONTROLE = pasta_dados() / "controle_backups.json"
 
 
 def carregar_controle():
