@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS livro (
     autor            TEXT    NOT NULL,
     isbn             TEXT,
     ano_publicacao   INTEGER,
+    edicao           TEXT,
     id_categoria     INTEGER REFERENCES categoria (id_categoria) ON DELETE SET NULL,
     quantidade_total INTEGER NOT NULL CHECK (quantidade_total >= 0)
 );

@@ -262,6 +262,11 @@
     var escolhas = document.querySelectorAll("[data-busca]");
     for (var i = 0; i < escolhas.length; i++) iniciarEscolha(escolhas[i]);
 
+    var seletores = document.querySelectorAll("select[data-envia-ao-mudar]");
+    for (var m = 0; m < seletores.length; m++) {
+        seletores[m].addEventListener("change", function () { this.form.requestSubmit(); });
+    }
+
     var filtros = document.querySelectorAll("[data-busca-filtro]");
     for (var j = 0; j < filtros.length; j++) iniciarFiltro(filtros[j]);
 })();

@@ -27,14 +27,14 @@ def test_realizar_emprestimo_valido(client, post, criar_usuario, criar_livro):
     assert ">Ativo<" in pagina
 
 
-def test_emprestimo_calcula_previsao_de_30_dias(client, post, criar_usuario, criar_livro, consulta):
+def test_emprestimo_calcula_previsao_de_15_dias(client, post, criar_usuario, criar_livro, consulta):
     id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
     id_livro = criar_livro("Dom Casmurro", quantidade=1)
 
     post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": id_livro})
 
     linha = consulta("SELECT data_emprestimo, data_devolucao_prevista FROM emprestimo")[0]
-    esperado = date.fromisoformat(linha["data_emprestimo"]) + timedelta(days=30)
+    esperado = date.fromisoformat(linha["data_emprestimo"]) + timedelta(days=15)
     assert linha["data_devolucao_prevista"] == esperado.isoformat()
 
 
@@ -57,16 +57,41 @@ def test_bloqueia_livro_sem_exemplar_disponivel(client, post, criar_usuario, cri
     assert "não tem exemplares disponíveis" in html(resposta)
 
 
-def test_bloqueia_usuario_com_pendencia(client, post, criar_usuario, criar_livro, registrar_emprestimo):
+def test_bloqueia_o_terceiro_emprestimo_da_mesma_pessoa(client, post, criar_usuario, criar_livro, registrar_emprestimo):
     id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
-    outro_livro = criar_livro("1984", quantidade=1)
-    registrar_emprestimo(outro_livro, id_usuario=id_usuario)
+    registrar_emprestimo(criar_livro("1984", quantidade=1), id_usuario=id_usuario)
+    registrar_emprestimo(criar_livro("Duna", quantidade=1), id_usuario=id_usuario)
 
     novo_livro = criar_livro("Dom Casmurro", quantidade=1)
     resposta = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": novo_livro})
 
     assert resposta.status_code == 400
-    assert "já está com um livro emprestado" in html(resposta)
+    assert "já está com 2 livros emprestados" in html(resposta)
+
+
+def test_permite_ate_dois_livros_quaisquer_inclusive_o_mesmo_titulo(post, criar_usuario, criar_livro, consulta):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", quantidade=2)
+
+    primeiro = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": id_livro})
+    segundo = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": id_livro})
+
+    assert primeiro.status_code == 302
+    assert segundo.status_code == 302
+    assert consulta("SELECT COUNT(*) AS total FROM emprestimo WHERE status = 'ativo'")[0]["total"] == 2
+
+
+def test_devolver_um_livro_libera_um_novo_emprestimo(post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    registrar_emprestimo(criar_livro("1984", quantidade=1), id_usuario=id_usuario)
+    registrar_emprestimo(criar_livro("Duna", quantidade=1), id_usuario=id_usuario)
+    novo_livro = criar_livro("Dom Casmurro", quantidade=1)
+    assert post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": novo_livro}).status_code == 400
+
+    id_emprestimo = consulta("SELECT id_emprestimo FROM emprestimo")[0]["id_emprestimo"]
+    post(f"/devolucoes/{id_emprestimo}/registrar")
+
+    assert post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": novo_livro}).status_code == 302
 
 
 def test_usuario_pode_pegar_outro_livro_apos_devolucao(client, post, criar_usuario, criar_livro, registrar_emprestimo):
@@ -410,3 +435,49 @@ def test_script_de_busca_e_carregado_em_todas_as_paginas(client):
     for rota in ["/", "/livros", "/usuarios", "/emprestimos", "/devolucoes", "/emprestimos/novo", "/emprestimos/reservas"]:
         assert 'src="/static/js/busca.js"' in html(client.get(rota)), rota
 
+
+def test_tela_e_mensagem_mostram_o_prazo_de_15_dias(client, post, criar_usuario, criar_livro):
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    id_livro = criar_livro("Dom Casmurro", quantidade=1)
+
+    post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": id_livro})
+    pagina = html(client.get("/emprestimos/novo"))
+
+    assert f"Devolução prevista para {(date.today() + timedelta(days=15)).strftime('%d/%m/%Y')}." in pagina
+    assert "15 dias" in pagina
+
+
+def test_emprestimos_ativos_com_prazo_antigo_de_30_dias_passam_para_15(tmp_path):
+    import sqlite3
+
+    from app import create_app
+
+    caminho = tmp_path / "antigo.db"
+    create_app({"TESTING": True, "DATABASE": caminho, "SECRET_KEY": "teste"})
+    hoje = date.today()
+    dia = hoje - timedelta(days=5)
+    with sqlite3.connect(caminho) as banco:
+        banco.execute("INSERT INTO usuario (nome) VALUES ('Leitor')")
+        banco.execute("INSERT INTO livro (titulo, autor, quantidade_total) VALUES ('Livro', 'Autor', 5)")
+        linhas = [
+            # ativo com o prazo antigo, devolvido com o prazo antigo, ativo com prazo combinado de outro tamanho
+            (dia.isoformat(), (dia + timedelta(days=30)).isoformat(), "ativo"),
+            (dia.isoformat(), (dia + timedelta(days=30)).isoformat(), "devolvido"),
+            (dia.isoformat(), (dia + timedelta(days=7)).isoformat(), "ativo"),
+        ]
+        banco.executemany(
+            "INSERT INTO emprestimo (data_emprestimo, data_devolucao_prevista, status, id_usuario, id_livro) VALUES (?, ?, ?, 1, 1)",
+            linhas,
+        )
+    banco.close()
+
+    for _ in range(2):  # abrir de novo não pode mudar nada além da primeira vez
+        create_app({"TESTING": True, "DATABASE": caminho, "SECRET_KEY": "teste"})
+        with sqlite3.connect(caminho) as banco:
+            previstas = [linha[0] for linha in banco.execute("SELECT data_devolucao_prevista FROM emprestimo ORDER BY id_emprestimo")]
+        banco.close()
+        assert previstas == [
+            (dia + timedelta(days=15)).isoformat(),
+            (dia + timedelta(days=30)).isoformat(),
+            (dia + timedelta(days=7)).isoformat(),
+        ]

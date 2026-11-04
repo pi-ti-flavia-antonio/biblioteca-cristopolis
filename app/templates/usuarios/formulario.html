@@ -70,11 +70,11 @@
 
         <div class="form__grid">
             {{ campo("nome", "Nome completo", obrigatorio=True, tamanho_max=150, foco=not usuario_id) }}
-            {{ campo("cpf", "CPF", obrigatorio=True, tamanho_max=14, placeholder="000.000.000-00") }}
+            {{ campo("cpf", "CPF", tamanho_max=14, placeholder="000.000.000-00") }}
             {{ campo("telefone", "Telefone", obrigatorio=True, tamanho_max=15, placeholder="(00) 00000-0000") }}
             {{ campo_select("tipo_usuario", "Tipo de usuário", tipos_usuario) }}
             {{ campo("email", "E-mail", tipo="email", tamanho_max=150) }}
-            {{ campo("endereco", "Endereço", tamanho_max=200) }}
+            {{ campo("endereco", "Endereço", obrigatorio=True, tamanho_max=200) }}
         </div>
 
         <div class="form__actions">

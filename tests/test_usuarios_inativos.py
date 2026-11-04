@@ -78,7 +78,7 @@ def test_emails_invalidos(post, email):
 def test_emails_validos(post, email):
     resposta = post(
         "/usuarios/novo",
-        {"nome": "Maria", "cpf": "39184726393", "telefone": "77998123456", "email": email},
+        {"nome": "Maria", "cpf": "39184726393", "telefone": "77998123456", "endereco": "Rua A, 1", "email": email},
     )
 
     assert resposta.status_code == 302, email

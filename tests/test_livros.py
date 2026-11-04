@@ -7,6 +7,7 @@ LIVRO_VALIDO = {
     "categoria": "Romance",
     "isbn": "",
     "ano_publicacao": "",
+    "edicao": "",
 }
 
 
@@ -52,9 +53,10 @@ def test_campos_opcionais_podem_ficar_vazios(post, consulta):
     resposta = post("/livros/novo", {**LIVRO_VALIDO, "categoria": ""})
 
     assert resposta.status_code == 302
-    livro = consulta("SELECT isbn, ano_publicacao, id_categoria FROM livro")[0]
+    livro = consulta("SELECT isbn, ano_publicacao, edicao, id_categoria FROM livro")[0]
     assert livro["isbn"] is None
     assert livro["ano_publicacao"] is None
+    assert livro["edicao"] is None
     assert livro["id_categoria"] is None
 
 
@@ -409,3 +411,111 @@ def test_campo_de_categoria_mostra_todas_as_opcoes_mesmo_com_valor(client):
 
     assert 'list="categorias"' in pagina
     assert "data-lista-completa" in pagina
+
+
+def test_cadastrar_grava_e_mostra_a_edicao(client, post, consulta):
+    post("/livros/novo", {**LIVRO_VALIDO, "edicao": "2ª edição"})
+
+    assert consulta("SELECT edicao FROM livro")[0]["edicao"] == "2ª edição"
+    assert "2ª edição" in html(client.get("/livros"))
+
+
+def test_edicao_muito_longa_e_recusada(post, consulta):
+    resposta = post("/livros/novo", {**LIVRO_VALIDO, "edicao": "x" * 61})
+
+    assert resposta.status_code == 400
+    assert "A edição pode ter no máximo 60 caracteres." in html(resposta)
+    assert consulta("SELECT COUNT(*) AS total FROM livro")[0]["total"] == 0
+
+
+def test_editar_altera_a_edicao_e_o_formulario_vem_preenchido(client, post, criar_livro):
+    id_livro = criar_livro("Dom Casmurro", edicao="1ª edição")
+    assert 'value="1ª edição"' in html(client.get(f"/livros/{id_livro}/editar"))
+
+    post(f"/livros/{id_livro}/editar", {**LIVRO_VALIDO, "edicao": "3ª edição"})
+
+    assert "3ª edição" in html(client.get("/livros"))
+
+
+def test_banco_antigo_sem_a_coluna_edicao_ganha_a_coluna(tmp_path):
+    import sqlite3
+
+    from app import create_app
+
+    caminho = tmp_path / "antigo.db"
+    with sqlite3.connect(caminho) as antigo:
+        antigo.execute("CREATE TABLE livro (id_livro INTEGER PRIMARY KEY, titulo TEXT NOT NULL, autor TEXT NOT NULL, "
+                       "isbn TEXT, ano_publicacao INTEGER, id_categoria INTEGER, quantidade_total INTEGER NOT NULL)")
+        antigo.execute("INSERT INTO livro (titulo, autor, quantidade_total) VALUES ('Dom Casmurro', 'Machado de Assis', 2)")
+    antigo.close()
+
+    create_app({"TESTING": True, "DATABASE": caminho, "SECRET_KEY": "teste"})
+
+    with sqlite3.connect(caminho) as banco:
+        livro = banco.execute("SELECT titulo, edicao FROM livro").fetchone()
+    banco.close()
+    assert livro == ("Dom Casmurro", None)
+
+
+def test_buscar_isbn_preenche_a_edicao_e_corta_no_limite(client, post, monkeypatch):
+    monkeypatch.setattr(
+        isbn_lookup,
+        "buscar_por_isbn",
+        lambda isbn: {"titulo": "Concrete mathematics", "autor": "Ronald L. Graham", "ano_publicacao": 1994, "edicao": "x" * 80},
+    )
+
+    pagina = html(post("/livros/novo", {"acao": "buscar_isbn", "isbn": "9780201558029"}))
+
+    assert f'value="{"x" * 60}"' in pagina
+    assert "x" * 61 not in pagina
+
+
+def test_filtro_por_categoria_mostra_so_os_livros_dela(client, criar_livro):
+    criar_livro("Dom Casmurro", categoria="Romance")
+    criar_livro("Duna", categoria="Ficção Científica")
+    criar_livro("Livro sem categoria")
+
+    pagina = html(client.get("/livros", query_string={"categoria": "Romance"}))
+
+    assert "Dom Casmurro" in pagina
+    assert "Duna" not in pagina
+    assert "Livro sem categoria" not in pagina
+    assert "1 de 1" in pagina
+
+
+def test_filtro_por_categoria_combina_com_a_busca(client, criar_livro):
+    criar_livro("Dom Casmurro", "Machado de Assis", categoria="Romance")
+    criar_livro("Memórias Póstumas", "Machado de Assis", categoria="Romance")
+    criar_livro("Quincas Borba", "Machado de Assis", categoria="Clássicos")
+
+    pagina = html(client.get("/livros", query_string={"q": "memorias", "categoria": "Romance"}))
+
+    assert "Memórias Póstumas" in pagina
+    assert "Dom Casmurro" not in pagina
+    assert "Quincas Borba" not in pagina
+
+
+def test_categoria_sem_livros_mostra_mensagem(client, criar_livro):
+    criar_livro("Dom Casmurro", categoria="Romance")
+
+    pagina = html(client.get("/livros", query_string={"categoria": "Poesia"}))
+
+    assert "Nenhum livro cadastrado na categoria Poesia." in pagina
+    assert "Dom Casmurro" not in pagina
+
+
+def test_tela_oferece_o_filtro_com_as_categorias_e_marca_a_escolhida(client):
+    pagina = html(client.get("/livros", query_string={"categoria": "Poesia"}))
+
+    assert "Todas as categorias" in pagina
+    assert '<option value="Poesia" selected>' in pagina
+    assert "Limpar" in pagina
+
+
+def test_paginacao_mantem_a_categoria(client, criar_livro):
+    for numero in range(30):
+        criar_livro(f"Livro {numero:02d}", categoria="Romance")
+
+    pagina = html(client.get("/livros", query_string={"categoria": "Romance"}))
+
+    assert "categoria=Romance" in pagina

@@ -2,7 +2,7 @@
 <svg class="sf__icone" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
 {%- endmacro %}
 
-{% macro barra_busca(url_sugestoes, nome, rotulo, placeholder, termo, destino) -%}
+{% macro barra_busca(url_sugestoes, nome, rotulo, placeholder, termo, destino, filtrado=False) -%}
 <form class="search search--sugestoes" method="get" action="{{ destino }}" role="search">
     <div class="busca-filtro" data-busca-filtro data-url="{{ url_sugestoes }}" data-nome="{{ nome }}">
         <label class="visually-hidden" for="busca">{{ rotulo }}</label>
@@ -14,8 +14,9 @@
             <ul class="sg" id="lista-busca" role="listbox" data-lista></ul>
         </div>
     </div>
+    {% if caller %}{{ caller() }}{% endif %}
     <button class="button button--primary" type="submit">Buscar</button>
-    {% if termo %}
+    {% if termo or filtrado %}
     <a class="button button--secondary" href="{{ destino }}">Limpar</a>
     {% endif %}
 </form>

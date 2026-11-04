@@ -73,7 +73,7 @@ def cadastrar():
         erros["id_livro"] = "Este livro não tem exemplares disponíveis no momento."
         return _formulario(erros, id_usuario, id_livro)
     except repository.UsuarioComPendencia:
-        erros["id_usuario"] = "Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro."
+        erros["id_usuario"] = f"Este usuário já está com {repository.LIMITE_EMPRESTIMOS_POR_PESSOA} livros emprestados e precisa devolver um antes de pegar outro."
         return _formulario(erros, id_usuario, id_livro)
     except repository.UsuarioInativo:
         erros["id_usuario"] = "Este usuário está inativo. Reative o cadastro dele na lista de usuários para registrar empréstimos e reservas."
@@ -152,7 +152,7 @@ def reservas_retirar(id_reserva):
         flash("Este livro não tem exemplar disponível agora.", "error")
         return redirect(url_for("emprestimos.reservas"))
     except repository.UsuarioComPendencia:
-        flash("Este usuário já está com um livro emprestado e precisa devolvê-lo antes de pegar outro.", "error")
+        flash(f"Este usuário já está com {repository.LIMITE_EMPRESTIMOS_POR_PESSOA} livros emprestados e precisa devolver um antes de pegar outro.", "error")
         return redirect(url_for("emprestimos.reservas"))
     except repository.UsuarioInativo:
         flash("Este usuário está inativo. Reative o cadastro dele na lista de usuários.", "error")

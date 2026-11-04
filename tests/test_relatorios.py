@@ -239,3 +239,34 @@ def test_botao_de_baixar_aparece_mesmo_sem_registros_no_periodo(client):
     assert "Relatório pronto." in pagina
     assert ">Baixar PDF<" in pagina
     assert "Nenhum empréstimo registrado nesse período." in pagina
+
+
+def test_pdf_recebe_a_contagem_de_emprestimos_por_categoria(app, client, criar_usuario, criar_livro, monkeypatch):
+    from app.relatorios import pdf
+
+    id_usuario = criar_usuario("Maria Oliveira", cpf="12345678909")
+    romance_1 = criar_livro("Dom Casmurro", categoria="Romance")
+    romance_2 = criar_livro("Memórias Póstumas", categoria="Romance")
+    poesia = criar_livro("Antologia", categoria="Poesia")
+    sem_categoria = criar_livro("Livro solto")
+    hoje = date.today()
+    prevista = (hoje + timedelta(days=14)).isoformat()
+    for id_livro in (romance_1, romance_1, romance_2, poesia, sem_categoria):
+        _inserir_emprestimo(app, id_usuario, id_livro, hoje.isoformat(), prevista, status="devolvido")
+    _inserir_emprestimo(
+        app, id_usuario, poesia, (hoje - timedelta(days=90)).isoformat(), prevista, status="devolvido"
+    )
+
+    recebido = {}
+    original = pdf.gerar_pdf_periodo
+
+    def espiao(inicio, fim, total, emprestimos, por_categoria=()):
+        recebido["categorias"] = [(linha["categoria"], linha["total"]) for linha in por_categoria]
+        return original(inicio, fim, total, emprestimos, por_categoria)
+
+    monkeypatch.setattr(pdf, "gerar_pdf_periodo", espiao)
+
+    resposta = client.get("/relatorios/periodo.pdf", query_string=_ultimos_30_dias())
+
+    assert resposta.status_code == 200
+    assert recebido["categorias"] == [("Romance", 3), ("Poesia", 1), ("Sem categoria", 1)]

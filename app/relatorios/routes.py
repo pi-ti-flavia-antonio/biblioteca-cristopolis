@@ -84,7 +84,8 @@ def periodo_pdf():
 
     total = emprestimos_repo.contar_por_periodo(data_inicio, data_fim)
     emprestimos = emprestimos_repo.listar_por_periodo_completo(data_inicio, data_fim)
-    buffer = pdf.gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos)
+    por_categoria = emprestimos_repo.contar_por_categoria(data_inicio, data_fim)
+    buffer = pdf.gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos, por_categoria)
 
     nome_arquivo = f"relatorio-emprestimos-{data_inicio.isoformat()}-a-{data_fim.isoformat()}.pdf"
     return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=nome_arquivo)

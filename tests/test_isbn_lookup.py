@@ -41,7 +41,7 @@ def test_encontrado_na_open_library_resolve_titulo_autor_e_ano(monkeypatch):
 
     resultado = isbn_lookup.buscar_por_isbn("0201558025")
 
-    assert resultado == {"titulo": "Concrete mathematics", "autor": "Ronald L. Graham", "ano_publicacao": 1994}
+    assert resultado == {"titulo": "Concrete mathematics", "autor": "Ronald L. Graham", "ano_publicacao": 1994, "edicao": None}
 
 
 def test_varios_autores_sao_resolvidos_e_juntados(monkeypatch):
@@ -94,7 +94,7 @@ def test_nao_encontrado_na_open_library_tenta_google_books(monkeypatch):
 
     resultado = isbn_lookup.buscar_por_isbn("9788535902775")
 
-    assert resultado == {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899}
+    assert resultado == {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "ano_publicacao": 1899, "edicao": None}
 
 
 def test_nao_encontrado_em_nenhuma_das_duas_fontes_retorna_none(monkeypatch):
@@ -153,3 +153,68 @@ def test_falha_ao_resolver_autor_nao_quebra_a_busca(monkeypatch):
 
     assert resultado["titulo"] == "Livro Z"
     assert resultado["autor"] == ""
+
+
+def test_edicao_vem_do_campo_edition_name(monkeypatch):
+    respostas = {
+        "/isbn/0201558025.json": _RespostaFalsa({
+            "title": "Concrete mathematics",
+            "authors": [{"key": "/authors/OL720958A"}],
+            "publish_date": "1994",
+            "edition_name": "2nd ed.",
+        }),
+        "/authors/OL720958A.json": _RespostaFalsa({"name": "Ronald L. Graham"}),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
+
+    assert isbn_lookup.buscar_por_isbn("0201558025")["edicao"] == "2nd ed."
+
+
+def test_autor_e_buscado_na_obra_quando_a_edicao_nao_traz(monkeypatch):
+    respostas = {
+        "/isbn/9780547928227.json": _RespostaFalsa({
+            "title": "The Hobbit",
+            "publish_date": "2012",
+            "works": [{"key": "/works/OL27482W"}],
+        }),
+        "/works/OL27482W.json": _RespostaFalsa({"authors": [{"author": {"key": "/authors/OL26320A"}, "type": {"key": "/type/author_role"}}]}),
+        "/authors/OL26320A.json": _RespostaFalsa({"name": "J.R.R. Tolkien"}),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
+
+    resultado = isbn_lookup.buscar_por_isbn("9780547928227")
+
+    assert resultado["autor"] == "J.R.R. Tolkien"
+    assert resultado["ano_publicacao"] == 2012
+
+
+def test_google_books_completa_autor_e_ano_que_faltam_na_open_library(monkeypatch):
+    respostas = {
+        "/isbn/9788501067340.json": _RespostaFalsa({"title": "Vidas Secas"}),
+        "googleapis.com/books/v1/volumes": _RespostaFalsa({
+            "items": [{"volumeInfo": {"title": "Outro título", "authors": ["Graciliano Ramos"], "publishedDate": "2015-01-01"}}]
+        }),
+    }
+    monkeypatch.setattr(requests, "get", _get_falso(respostas))
+
+    resultado = isbn_lookup.buscar_por_isbn("9788501067340")
+
+    assert resultado == {"titulo": "Vidas Secas", "autor": "Graciliano Ramos", "ano_publicacao": 2015, "edicao": None}
+
+
+def test_google_books_nao_e_consultado_quando_a_open_library_traz_tudo(monkeypatch):
+    chamadas = []
+    respostas = {
+        "/isbn/1.json": _RespostaFalsa({"title": "Livro", "by_statement": "Fulano", "publish_date": "2000"}),
+    }
+    get = _get_falso(respostas)
+
+    def _get(url, timeout=None, params=None):
+        chamadas.append(url)
+        return get(url, timeout=timeout, params=params)
+
+    monkeypatch.setattr(requests, "get", _get)
+
+    isbn_lookup.buscar_por_isbn("1")
+
+    assert not any("googleapis" in url for url in chamadas)

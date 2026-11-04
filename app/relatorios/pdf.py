@@ -22,7 +22,20 @@ def _status_do_emprestimo(emprestimo):
     return "Ativo"
 
 
-def gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos):
+def _estilo_da_tabela():
+    return TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), COR_PRIMARIA),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, COR_BORDA),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, COR_LINHA_PAR]),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ])
+
+
+def gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos, por_categoria=()):
     """Gera o PDF do relatório de empréstimos por período e retorna um BytesIO."""
     buffer = BytesIO()
     documento = SimpleDocTemplate(
@@ -42,6 +55,14 @@ def gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos):
         Spacer(1, 16),
     ]
 
+    if por_categoria:
+        elementos.append(Paragraph("Empréstimos por categoria", estilos["Heading3"]))
+        quadro = [["Categoria", "Empréstimos"]]
+        quadro += [[Paragraph(linha["categoria"], estilos["BodyText"]), str(linha["total"])] for linha in por_categoria]
+        tabela_categorias = Table(quadro, repeatRows=1, colWidths=[11 * cm, 4 * cm], hAlign="LEFT")
+        tabela_categorias.setStyle(_estilo_da_tabela())
+        elementos += [tabela_categorias, Spacer(1, 16), Paragraph("Lista de empréstimos", estilos["Heading3"])]
+
     linhas = [["Livro", "Usuário", "Empréstimo", "Status"]]
     for emprestimo in emprestimos:
         linhas.append([
@@ -55,16 +76,7 @@ def gerar_pdf_periodo(data_inicio, data_fim, total, emprestimos):
         elementos.append(Paragraph("Nenhum empréstimo registrado nesse período.", estilos["Normal"]))
     else:
         tabela = Table(linhas, repeatRows=1, colWidths=[6.5 * cm, 5 * cm, 2.8 * cm, 2.7 * cm])
-        tabela.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), COR_PRIMARIA),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, COR_BORDA),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, COR_LINHA_PAR]),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]))
+        tabela.setStyle(_estilo_da_tabela())
         elementos.append(tabela)
 
     documento.build(elementos)

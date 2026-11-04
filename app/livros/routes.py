@@ -68,6 +68,8 @@ def _buscar_dados_do_isbn(valores):
         novos_valores["autor"] = encontrado["autor"]
     if encontrado["ano_publicacao"]:
         novos_valores["ano_publicacao"] = str(encontrado["ano_publicacao"])
+    if encontrado.get("edicao"):
+        novos_valores["edicao"] = encontrado["edicao"][:validacao.TAMANHO_MAX_EDICAO]
     return novos_valores, "Dados encontrados. Confira as informações e clique em Salvar.", "success"
 
 
@@ -81,7 +83,8 @@ def _obter_ou_404(id_livro):
 @livros_bp.get("")
 def consultar():
     termo = request.args.get("q", "").strip()
-    total = repository.contar(termo)
+    categoria = request.args.get("categoria", "").strip()
+    total = repository.contar(termo, categoria)
     total_paginas = max(math.ceil(total / repository.POR_PAGINA), 1)
     pagina = min(max(request.args.get("pagina", 1, type=int), 1), total_paginas)
 
@@ -89,7 +92,9 @@ def consultar():
         "livros/consultar.html",
         aba="consultar",
         termo=termo,
-        livros=repository.listar(termo, pagina),
+        categoria=categoria,
+        categorias=repository.nomes_categorias(),
+        livros=repository.listar(termo, pagina, categoria),
         total=total,
         pagina=pagina,
         total_paginas=total_paginas,

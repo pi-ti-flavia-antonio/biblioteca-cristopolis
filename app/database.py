@@ -29,12 +29,21 @@ def _atualizar_bancos_antigos(db):
     novas_colunas = (
         ("reserva", "aviso_visto", "INTEGER NOT NULL DEFAULT 0"),
         ("usuario", "ativo", "INTEGER NOT NULL DEFAULT 1"),
+        ("livro", "edicao", "TEXT"),
     )
     for tabela, coluna, definicao in novas_colunas:
         colunas = {linha["name"] for linha in db.execute(f"PRAGMA table_info({tabela})")}
         if coluna not in colunas:
             with db:
                 db.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {definicao}")
+
+    # O prazo padrão passou de 30 para 15 dias: empréstimos ativos feitos com o prazo antigo
+    # ganham o novo. Só mexe nos que têm exatamente 30 dias, então repetir não altera nada.
+    with db:
+        db.execute(
+            "UPDATE emprestimo SET data_devolucao_prevista = date(data_emprestimo, '+15 days') "
+            "WHERE status = 'ativo' AND date(data_devolucao_prevista) = date(data_emprestimo, '+30 days')"
+        )
 
 
 def init_db():

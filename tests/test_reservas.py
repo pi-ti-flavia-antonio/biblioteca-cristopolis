@@ -143,12 +143,13 @@ def test_registrar_retirada_bloqueia_se_usuario_tem_pendencia(client, post, cria
     post(f"/devolucoes/{id_emprestimo_antigo}/registrar")
 
     outro_livro = criar_livro("1984", quantidade=1)
-    registrar_emprestimo(outro_livro, id_usuario=id_usuario)  # usuario pega pendencia com outro livro
+    registrar_emprestimo(outro_livro, id_usuario=id_usuario)  # usuário chega ao limite de 2 livros
+    registrar_emprestimo(criar_livro("Duna", quantidade=1), id_usuario=id_usuario)
 
     id_reserva = consulta("SELECT id_reserva FROM reserva")[0]["id_reserva"]
     post(f"/emprestimos/reservas/{id_reserva}/retirar")
 
-    assert "já está com um livro emprestado" in html(client.get("/emprestimos/reservas"))
+    assert "já está com 2 livros emprestados" in html(client.get("/emprestimos/reservas"))
     assert consulta("SELECT status FROM reserva")[0]["status"] == "ativa"
 
 

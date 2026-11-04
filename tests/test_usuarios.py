@@ -38,24 +38,24 @@ def test_cadastrar_mostra_mensagem_de_sucesso(client, post):
 
 
 def test_cadastrar_sem_campos_obrigatorios_nao_grava(client, post):
-    resposta = post("/usuarios/novo", {"nome": "", "cpf": "", "telefone": ""})
+    resposta = post("/usuarios/novo", {"nome": "", "cpf": "", "telefone": "", "endereco": ""})
     pagina = html(resposta)
 
     assert resposta.status_code == 400
     assert "Informe o nome." in pagina
-    assert "Informe o CPF." in pagina
     assert "Informe o telefone." in pagina
+    assert "Informe o endereço." in pagina
+    assert "Informe o CPF." not in pagina
     assert "Nenhum usuário cadastrado ainda." in html(client.get("/usuarios"))
 
 
 def test_campos_opcionais_podem_ficar_vazios(post, consulta):
-    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "tipo_usuario": "", "email": "", "endereco": ""})
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "tipo_usuario": "", "email": ""})
 
     assert resposta.status_code == 302
-    usuario = consulta("SELECT tipo_usuario, email, endereco FROM usuario")[0]
+    usuario = consulta("SELECT tipo_usuario, email FROM usuario")[0]
     assert usuario["tipo_usuario"] is None
     assert usuario["email"] is None
-    assert usuario["endereco"] is None
 
 
 def test_cpf_invalido(post):
@@ -247,3 +247,45 @@ def test_cadastro_vindo_do_emprestimo_redireciona_com_usuario_selecionado(client
     pagina = html(client.get(resposta.headers["Location"]))
     assert f'name="id_usuario" value="{id_usuario}"' in pagina
     assert "Maria Oliveira" in pagina
+
+
+def test_cpf_pode_ficar_em_branco(client, post, consulta):
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+
+    assert resposta.status_code == 302
+    assert consulta("SELECT cpf FROM usuario")[0]["cpf"] is None
+    assert "Maria Oliveira" in html(client.get("/usuarios"))
+
+
+def test_dois_usuarios_sem_cpf_podem_ser_cadastrados(post, consulta):
+    post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "nome": "Carlos Souza", "cpf": ""})
+
+    assert resposta.status_code == 302
+    assert consulta("SELECT COUNT(*) AS total FROM usuario")[0]["total"] == 2
+
+
+def test_cpf_preenchido_continua_sendo_validado(post):
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": "111.111.111-11"})
+
+    assert resposta.status_code == 400
+    assert "Informe um CPF válido" in html(resposta)
+
+
+def test_endereco_e_obrigatorio_no_cadastro_e_na_edicao(post, criar_usuario, consulta):
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "endereco": ""})
+    assert resposta.status_code == 400
+    assert "Informe o endereço." in html(resposta)
+    assert consulta("SELECT COUNT(*) AS total FROM usuario")[0]["total"] == 0
+
+    id_usuario = criar_usuario("Maria Oliveira", endereco="Rua A, 1")
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "endereco": ""})
+    assert resposta.status_code == 400
+    assert "Informe o endereço." in html(resposta)
+
+
+def test_usuario_sem_cpf_aparece_com_traco_na_lista_e_na_exclusao(client, criar_usuario):
+    id_usuario = criar_usuario("Maria Oliveira", cpf=None, endereco="Rua A, 1")
+
+    assert "Maria Oliveira" in html(client.get("/usuarios"))
+    assert "CPF" not in html(client.get(f"/usuarios/{id_usuario}/excluir")).split("Maria Oliveira", 1)[1].split("</p>", 1)[0]

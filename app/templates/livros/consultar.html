@@ -11,7 +11,15 @@
 <section class="panel" aria-labelledby="acervo-heading">
     <h2 id="acervo-heading" class="visually-hidden">Acervo</h2>
 
-    {{ barra_busca(url_for('livros.sugestoes'), "livro", "Buscar livro", "Buscar por título, autor ou ISBN", termo, url_for('livros.consultar')) }}
+    {% call barra_busca(url_for('livros.sugestoes'), "livro", "Buscar livro", "Buscar por título, autor ou ISBN", termo, url_for('livros.consultar'), filtrado=categoria != "") %}
+    <label class="visually-hidden" for="filtro-categoria">Filtrar por categoria</label>
+    <select id="filtro-categoria" name="categoria" class="input search__categoria" data-envia-ao-mudar>
+        <option value="">Todas as categorias</option>
+        {% for nome in categorias %}
+        <option value="{{ nome }}"{% if nome == categoria %} selected{% endif %}>{{ nome }}</option>
+        {% endfor %}
+    </select>
+    {% endcall %}
 
     <div class="table-wrapper">
         <table class="table">
@@ -30,7 +38,7 @@
                 <tr>
                     <td>
                         <span class="table__title">{{ livro.titulo }}</span>
-                        <span class="table__subtitle">{{ livro.autor }}</span>
+                        <span class="table__subtitle">{{ livro.autor }}{% if livro.edicao %} · {{ livro.edicao }}{% endif %}</span>
                     </td>
                     <td>{{ livro.categoria or "-" }}</td>
                     <td class="table__nowrap">{{ livro.isbn or "-" }}</td>
@@ -47,7 +55,9 @@
                 <tr>
                     <td colspan="6" class="table__empty">
                         {% if termo %}
-                        Nenhum livro encontrado para "{{ termo }}".
+                        Nenhum livro encontrado para "{{ termo }}"{% if categoria %} na categoria {{ categoria }}{% endif %}.
+                        {% elif categoria %}
+                        Nenhum livro cadastrado na categoria {{ categoria }}.
                         {% else %}
                         Nenhum livro cadastrado ainda.
                         <a class="link-action" href="{{ url_for('livros.cadastrar') }}">Cadastrar o primeiro livro</a>
@@ -65,10 +75,10 @@
         {% if total_paginas > 1 %}
         <div class="pagination__links">
             {% if pagina > 1 %}
-            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, pagina=pagina - 1) }}">Anterior</a>
+            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, categoria=categoria or None, pagina=pagina - 1) }}">Anterior</a>
             {% endif %}
             {% if pagina < total_paginas %}
-            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, pagina=pagina + 1) }}">Próxima</a>
+            <a class="button button--secondary button--small" href="{{ url_for('livros.consultar', q=termo or None, categoria=categoria or None, pagina=pagina + 1) }}">Próxima</a>
             {% endif %}
         </div>
         {% endif %}

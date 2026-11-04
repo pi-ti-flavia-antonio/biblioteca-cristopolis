@@ -71,9 +71,7 @@ def validar_usuario(valores):
         erros["nome"] = f"O nome pode ter no máximo {TAMANHO_MAX_NOME} caracteres."
 
     cpf = None
-    if not valores["cpf"]:
-        erros["cpf"] = "Informe o CPF."
-    else:
+    if valores["cpf"]:
         digitos = limpar_digitos(valores["cpf"])
         if cpf_valido(digitos):
             cpf = digitos
@@ -102,7 +100,9 @@ def validar_usuario(valores):
             erros["email"] = "Informe um e-mail válido."
 
     endereco = valores["endereco"] or None
-    if endereco and len(endereco) > TAMANHO_MAX_ENDERECO:
+    if not endereco:
+        erros["endereco"] = "Informe o endereço."
+    elif len(endereco) > TAMANHO_MAX_ENDERECO:
         erros["endereco"] = f"O endereço pode ter no máximo {TAMANHO_MAX_ENDERECO} caracteres."
 
     dados = {

@@ -3,11 +3,12 @@ from datetime import date
 
 from ..texto import limpar_isbn
 
-CAMPOS = ("titulo", "autor", "quantidade", "categoria", "isbn", "ano_publicacao")
+CAMPOS = ("titulo", "autor", "quantidade", "categoria", "isbn", "ano_publicacao", "edicao")
 
 TAMANHO_MAX_TITULO = 200
 TAMANHO_MAX_AUTOR = 150
 TAMANHO_MAX_CATEGORIA = 60
+TAMANHO_MAX_EDICAO = 60
 QUANTIDADE_MAX = 9999
 ANO_MIN = 1000
 
@@ -28,6 +29,7 @@ def valores_do_livro(livro):
         "categoria": livro["categoria"] or "",
         "isbn": livro["isbn"] or "",
         "ano_publicacao": "" if livro["ano_publicacao"] is None else str(livro["ano_publicacao"]),
+        "edicao": livro["edicao"] or "",
     }
 
 
@@ -49,6 +51,10 @@ def validar_livro(valores):
     categoria = valores["categoria"]
     if len(categoria) > TAMANHO_MAX_CATEGORIA:
         erros["categoria"] = f"A categoria pode ter no máximo {TAMANHO_MAX_CATEGORIA} caracteres."
+
+    edicao = valores["edicao"]
+    if len(edicao) > TAMANHO_MAX_EDICAO:
+        erros["edicao"] = f"A edição pode ter no máximo {TAMANHO_MAX_EDICAO} caracteres."
 
     quantidade = None
     if not valores["quantidade"]:
@@ -84,5 +90,6 @@ def validar_livro(valores):
         "quantidade": quantidade,
         "isbn": isbn,
         "ano_publicacao": ano,
+        "edicao": edicao or None,
     }
     return dados, erros

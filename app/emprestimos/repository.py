@@ -4,7 +4,8 @@ from ..database import get_db
 from ..texto import normalizar
 
 POR_PAGINA = 25
-PRAZO_PADRAO_DIAS = 30
+PRAZO_PADRAO_DIAS = 15
+LIMITE_EMPRESTIMOS_POR_PESSOA = 2
 
 _SELECT_EMPRESTIMOS = """
     SELECT emp.id_emprestimo, emp.id_livro, emp.data_emprestimo, emp.data_devolucao_prevista,
@@ -28,7 +29,7 @@ class UsuarioInativo(Exception):
 
 
 class UsuarioComPendencia(Exception):
-    """O usuário já está com um exemplar emprestado."""
+    """O usuário já está com o máximo de livros emprestados ao mesmo tempo."""
 
 
 class EmprestimoInvalido(Exception):
@@ -215,6 +216,22 @@ def listar_por_periodo_completo(data_inicio, data_fim):
     ).fetchall()
 
 
+def contar_por_categoria(data_inicio, data_fim):
+    """Quantos empréstimos o período teve em cada categoria, da mais emprestada para a menos."""
+    return get_db().execute(
+        """
+        SELECT COALESCE(c.nome, 'Sem categoria') AS categoria, COUNT(*) AS total
+          FROM emprestimo emp
+          JOIN livro l ON l.id_livro = emp.id_livro
+          LEFT JOIN categoria c ON c.id_categoria = l.id_categoria
+         WHERE date(emp.data_emprestimo) BETWEEN :inicio AND :fim
+         GROUP BY categoria
+         ORDER BY total DESC, normalizar(categoria)
+        """,
+        {"inicio": data_inicio.isoformat(), "fim": data_fim.isoformat()},
+    ).fetchall()
+
+
 def livro_disponivel(id_livro):
     linha = get_db().execute(
         """
@@ -234,12 +251,12 @@ def usuario_ativo(id_usuario):
     return bool(linha and linha["ativo"])
 
 
-def usuario_tem_pendencia(id_usuario):
+def usuario_no_limite(id_usuario):
     linha = get_db().execute(
         "SELECT COUNT(*) FROM emprestimo WHERE id_usuario = ? AND status = 'ativo'",
         (id_usuario,),
     ).fetchone()
-    return linha[0] > 0
+    return linha[0] >= LIMITE_EMPRESTIMOS_POR_PESSOA
 
 
 def criar(id_usuario, id_livro):
@@ -248,7 +265,7 @@ def criar(id_usuario, id_livro):
     disponivel = livro_disponivel(id_livro)
     if disponivel is None or disponivel <= 0:
         raise LivroIndisponivel(id_livro)
-    if usuario_tem_pendencia(id_usuario):
+    if usuario_no_limite(id_usuario):
         raise UsuarioComPendencia(id_usuario)
 
     hoje = date.today()

@@ -70,6 +70,7 @@ def criar_livro(app):
             "categoria": "",
             "isbn": None,
             "ano_publicacao": None,
+            "edicao": None,
             **extra,
         }
         with app.app_context():

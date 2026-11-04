@@ -23,7 +23,7 @@ CATEGORIAS_PADRAO = [
 ]
 
 _SELECT_LIVROS = """
-    SELECT l.id_livro, l.titulo, l.autor, l.isbn, l.ano_publicacao,
+    SELECT l.id_livro, l.titulo, l.autor, l.isbn, l.ano_publicacao, l.edicao,
            l.quantidade_total, c.nome AS categoria,
            COALESCE(e.ativos, 0) AS emprestimos_ativos,
            l.quantidade_total - COALESCE(e.ativos, 0) AS quantidade_disponivel
@@ -46,32 +46,40 @@ def _escapar_like(texto):
     return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-def _filtro_busca(termo):
+def _filtro_busca(termo, categoria=""):
     termo = termo.strip()
-    if not termo:
+    clausulas = []
+    parametros = {}
+
+    if termo:
+        condicoes = [
+            "normalizar(l.titulo) LIKE :texto ESCAPE '\\'",
+            "normalizar(l.autor) LIKE :texto ESCAPE '\\'",
+        ]
+        parametros["texto"] = f"%{_escapar_like(normalizar(termo))}%"
+
+        isbn = limpar_isbn(termo)
+        if len(isbn) >= 3:
+            condicoes.append("l.isbn LIKE :isbn")
+            parametros["isbn"] = f"%{isbn}%"
+        clausulas.append("(" + " OR ".join(condicoes) + ")")
+
+    if categoria:
+        clausulas.append("l.id_categoria = (SELECT id_categoria FROM categoria WHERE nome = :categoria)")
+        parametros["categoria"] = categoria
+
+    if not clausulas:
         return "", {}
-
-    condicoes = [
-        "normalizar(l.titulo) LIKE :texto ESCAPE '\\'",
-        "normalizar(l.autor) LIKE :texto ESCAPE '\\'",
-    ]
-    parametros = {"texto": f"%{_escapar_like(normalizar(termo))}%"}
-
-    isbn = limpar_isbn(termo)
-    if len(isbn) >= 3:
-        condicoes.append("l.isbn LIKE :isbn")
-        parametros["isbn"] = f"%{isbn}%"
-
-    return "WHERE " + " OR ".join(condicoes), parametros
+    return "WHERE " + " AND ".join(clausulas), parametros
 
 
-def contar(termo=""):
-    filtro, parametros = _filtro_busca(termo)
+def contar(termo="", categoria=""):
+    filtro, parametros = _filtro_busca(termo, categoria)
     return get_db().execute(f"SELECT COUNT(*) FROM livro l {filtro}", parametros).fetchone()[0]
 
 
-def listar(termo="", pagina=1):
-    filtro, parametros = _filtro_busca(termo)
+def listar(termo="", pagina=1, categoria=""):
+    filtro, parametros = _filtro_busca(termo, categoria)
     parametros = {**parametros, "limite": POR_PAGINA, "offset": (pagina - 1) * POR_PAGINA}
     return get_db().execute(
         f"{_SELECT_LIVROS} {filtro} ORDER BY normalizar(l.titulo), l.id_livro LIMIT :limite OFFSET :offset",
@@ -150,8 +158,8 @@ def criar(dados):
         parametros = {**dados, "id_categoria": _resolver_categoria(db, dados["categoria"])}
         cursor = db.execute(
             """
-            INSERT INTO livro (titulo, autor, isbn, ano_publicacao, id_categoria, quantidade_total)
-            VALUES (:titulo, :autor, :isbn, :ano_publicacao, :id_categoria, :quantidade)
+            INSERT INTO livro (titulo, autor, isbn, ano_publicacao, edicao, id_categoria, quantidade_total)
+            VALUES (:titulo, :autor, :isbn, :ano_publicacao, :edicao, :id_categoria, :quantidade)
             """,
             parametros,
         )
@@ -170,7 +178,7 @@ def atualizar(id_livro, dados):
             """
             UPDATE livro
                SET titulo = :titulo, autor = :autor, isbn = :isbn,
-                   ano_publicacao = :ano_publicacao, id_categoria = :id_categoria,
+                   ano_publicacao = :ano_publicacao, edicao = :edicao, id_categoria = :id_categoria,
                    quantidade_total = :quantidade
              WHERE id_livro = :id_livro
             """,
