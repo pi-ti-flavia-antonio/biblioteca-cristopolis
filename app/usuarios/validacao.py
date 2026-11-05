@@ -4,7 +4,7 @@ from ..texto import cpf_valido, limpar_digitos
 
 CAMPOS = ("nome", "cpf", "telefone", "tipo_usuario", "email", "endereco")
 
-TIPOS_USUARIO = ("aluno", "professor", "comunidade")
+TIPOS_USUARIO = ("aluno", "professor", "comunidade", "responsável")
 
 TAMANHO_MAX_NOME = 150
 TAMANHO_MAX_EMAIL = 150

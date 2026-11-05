@@ -88,6 +88,13 @@ def test_telefone_invalido(post):
         assert "Informe um telefone válido" in html(resposta)
 
 
+def test_tipo_usuario_responsavel_e_aceito(post, consulta):
+    resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "tipo_usuario": "responsável"})
+
+    assert resposta.status_code == 302
+    assert consulta("SELECT tipo_usuario FROM usuario")[0]["tipo_usuario"] == "responsável"
+
+
 def test_tipo_usuario_invalido(post):
     resposta = post("/usuarios/novo", {**USUARIO_VALIDO, "tipo_usuario": "gerente"})
 
