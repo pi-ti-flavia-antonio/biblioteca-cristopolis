@@ -10,6 +10,10 @@ from caminhos import pasta_dados
 import sys
 import os
 
+import backup
+import controle_backups
+import criptografia
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -110,20 +114,17 @@ def enviar_backup(servico, caminho_backup):
 
 
 
-if __name__ == "__main__":
-    from backup import criar_backup
-    from criptografia import criptografar_backup
-    from controle_backups import (
-    registrar_envio,
-    ja_enviado,
-    limpar_backups_antigos,
-)
+def executar():
+    """Cria o backup do dia, criptografa e envia ao Drive todos os que ainda estão pendentes.
 
+    Sem internet, o arquivo criptografado fica guardado e sai na execução seguinte.
+    Termina com SystemExit(1) se algum envio falhar, para o Agendador marcar a falha.
+    """
     # 1. Cria e criptografa um novo backup local
-    caminho_backup = criar_backup()
+    caminho_backup = backup.criar_backup()
 
     try:
-        caminho_criptografado = criptografar_backup(caminho_backup)
+        caminho_criptografado = criptografia.criptografar_backup(caminho_backup)
     finally:
         # Remove a cópia temporária sem criptografia
         # somente quando o arquivo criptografado existe
@@ -133,14 +134,14 @@ if __name__ == "__main__":
             caminho_backup.unlink(missing_ok=True)
 
     # 2. Localiza os backups criptografados pendentes
-    pasta_backups = pasta_dados() / "backups"
+    pasta_backups = backup.PASTA_BACKUPS
 
     falha_envio = False
 
     pendentes = sorted(
         arquivo
         for arquivo in pasta_backups.glob("biblioteca_*.db.enc")
-        if not ja_enviado(arquivo.name)
+        if not controle_backups.ja_enviado(arquivo.name)
     )
 
     print(f"\nBackups pendentes: {len(pendentes)}")
@@ -161,7 +162,7 @@ if __name__ == "__main__":
                 try:
                     resultado = enviar_backup(servico, arquivo)
 
-                    registrar_envio(
+                    controle_backups.registrar_envio(
                         arquivo.name,
                         resultado["id"]
                     )
@@ -173,13 +174,15 @@ if __name__ == "__main__":
                     print(f"Falha no envio de {arquivo.name}: {erro}")
                     print("O arquivo será mantido para nova tentativa.")
 
-
-
-            # Mantém até 7 backups locais já enviados.
-            # Backups pendentes não são excluídos.
-    limpar_backups_antigos(pasta_backups, manter=7)
+    # Mantém até 7 backups locais já enviados.
+    # Backups pendentes não são excluídos.
+    controle_backups.limpar_backups_antigos(pasta_backups, manter=7)
     if falha_envio:
         print("ATENÇÃO: houve falhas no envio de backups.")
         raise SystemExit(1)
 
     print("Processo de backup finalizado com sucesso.")
+
+
+if __name__ == "__main__":
+    executar()
