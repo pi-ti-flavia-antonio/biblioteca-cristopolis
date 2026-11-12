@@ -42,7 +42,7 @@
                 <tr>
                     <td class="table__nowrap">{{ usuario.numero_carteirinha or "-" }}</td>
                     <td>
-                        <span class="table__title">{% if usuario.tem_foto %}<img class="usuario-miniatura" src="{{ url_for('usuarios.foto', usuario_id=usuario.id_usuario) }}" alt="">{% endif %}<a href="{{ url_for('usuarios.ver', usuario_id=usuario.id_usuario) }}">{{ usuario.nome }}</a>{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</span>
+                        <span class="table__title{% if usuario.tem_foto %} table__title--foto{% endif %}">{% if usuario.tem_foto %}<img class="usuario-miniatura" src="{{ url_for('usuarios.foto', usuario_id=usuario.id_usuario) }}" alt="">{% endif %}<a href="{{ url_for('usuarios.ver', usuario_id=usuario.id_usuario) }}">{{ usuario.nome }}</a>{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</span>
                         {% if usuario.email %}<span class="table__subtitle">{{ usuario.email }}</span>{% endif %}
                     </td>
                     <td class="table__nowrap">{{ (usuario.cpf | cpf_mascarado) or "-" }}</td>

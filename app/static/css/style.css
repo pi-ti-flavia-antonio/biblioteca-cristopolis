@@ -960,13 +960,18 @@ fieldset.field legend {
     gap: 0.4rem;
 }
 
+.table__title--foto {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
 .usuario-miniatura {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 50%;
     object-fit: cover;
-    vertical-align: middle;
-    margin-right: 0.6rem;
+    flex: 0 0 auto;
 }
 
 .perfil {
