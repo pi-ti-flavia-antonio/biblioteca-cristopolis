@@ -30,12 +30,22 @@ def _atualizar_bancos_antigos(db):
         ("reserva", "aviso_visto", "INTEGER NOT NULL DEFAULT 0"),
         ("usuario", "ativo", "INTEGER NOT NULL DEFAULT 1"),
         ("livro", "edicao", "TEXT"),
+        ("funcionario", "email_recuperacao", "TEXT"),
+        ("usuario", "numero_carteirinha", "INTEGER"),
     )
     for tabela, coluna, definicao in novas_colunas:
         colunas = {linha["name"] for linha in db.execute(f"PRAGMA table_info({tabela})")}
         if coluna not in colunas:
             with db:
                 db.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {definicao}")
+
+    # Cada número de carteirinha só pode existir uma vez. O índice fica aqui, e não no schema,
+    # porque um banco antigo só ganha a coluna logo acima.
+    with db:
+        db.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_carteirinha ON usuario (numero_carteirinha) "
+            "WHERE numero_carteirinha IS NOT NULL"
+        )
 
     # O prazo padrão passou de 30 para 15 dias: empréstimos ativos feitos com o prazo antigo
     # ganham o novo. Só mexe nos que têm exatamente 30 dias, então repetir não altera nada.

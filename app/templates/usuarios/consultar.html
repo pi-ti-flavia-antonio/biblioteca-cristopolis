@@ -11,7 +11,7 @@
 <section class="panel" aria-labelledby="usuarios-heading">
     <h2 id="usuarios-heading" class="visually-hidden">Usuários</h2>
 
-    {{ barra_busca(url_for('usuarios.sugestoes', inativos=1), "usuário", "Buscar usuário", "Buscar por nome ou CPF", termo, url_for('usuarios.consultar')) }}
+    {{ barra_busca(url_for('usuarios.sugestoes', inativos=1), "usuário", "Buscar usuário", "Buscar por nome, CPF ou carteirinha", termo, url_for('usuarios.consultar')) }}
 
     <p class="panel__text">
         {% if so_inativos %}
@@ -29,6 +29,7 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th scope="col">Carteirinha</th>
                     <th scope="col">Nome</th>
                     <th scope="col">CPF</th>
                     <th scope="col">Telefone</th>
@@ -39,14 +40,16 @@
             <tbody>
                 {% for usuario in usuarios %}
                 <tr>
+                    <td class="table__nowrap">{{ usuario.numero_carteirinha or "-" }}</td>
                     <td>
-                        <span class="table__title">{{ usuario.nome }}{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</span>
+                        <span class="table__title">{% if usuario.tem_foto %}<img class="usuario-miniatura" src="{{ url_for('usuarios.foto', usuario_id=usuario.id_usuario) }}" alt="">{% endif %}<a href="{{ url_for('usuarios.ver', usuario_id=usuario.id_usuario) }}">{{ usuario.nome }}</a>{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</span>
                         {% if usuario.email %}<span class="table__subtitle">{{ usuario.email }}</span>{% endif %}
                     </td>
                     <td class="table__nowrap">{{ (usuario.cpf | cpf_mascarado) or "-" }}</td>
                     <td class="table__nowrap">{{ usuario.telefone | telefone }}</td>
                     <td>{{ usuario.tipo_usuario or "-" }}</td>
                     <td class="table__actions">
+                        <a class="link-action" href="{{ url_for('usuarios.ver', usuario_id=usuario.id_usuario) }}">Ver</a>
                         <a class="link-action" href="{{ url_for('usuarios.editar', usuario_id=usuario.id_usuario) }}">Editar</a>
                         {% if usuario.ativo %}
                         <a class="link-action link-action--danger" href="{{ url_for('usuarios.excluir', usuario_id=usuario.id_usuario) }}">Excluir</a>
@@ -60,7 +63,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="table__empty">
+                    <td colspan="6" class="table__empty">
                         {% if termo %}
                         Nenhum usuário encontrado para "{{ termo }}".
                         {% else %}

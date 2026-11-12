@@ -1,8 +1,8 @@
 {% extends "auth/base_simples.html" %}
 
-{% macro campo(nome, rotulo, tipo="text", ajuda="", foco=False, autocomplete="off") -%}
+{% macro campo(nome, rotulo, tipo="text", ajuda="", foco=False, autocomplete="off", obrigatorio=True) -%}
     <div class="field">
-        <label for="{{ nome }}">{{ rotulo }} <span class="field__required" title="Obrigatório">*</span></label>
+        <label for="{{ nome }}">{{ rotulo }}{% if obrigatorio %} <span class="field__required" title="Obrigatório">*</span>{% endif %}</label>
         <input id="{{ nome }}" name="{{ nome }}" type="{{ tipo }}" class="input{% if erros[nome] %} input--error{% endif %}"
                {%- if tipo != "password" %} value="{{ valores[nome] }}"{% endif %}
                autocomplete="{{ autocomplete }}"
@@ -21,7 +21,7 @@
 
 {% block conteudo %}
 <h1 class="entrada__titulo">Primeiro acesso</h1>
-<p class="panel__text">Crie a conta que vai usar para entrar no sistema. Anote a senha em um lugar seguro: ela não pode ser recuperada, só trocada.</p>
+<p class="panel__text">Crie a conta que vai usar para entrar no sistema. Anote a senha em um lugar seguro: ela não pode ser lida, só trocada.</p>
 
 <form method="post" class="form" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -30,6 +30,7 @@
     {{ campo("login", "Nome de usuário", ajuda="Sem espaços. É o que você digita para entrar.", autocomplete="username") }}
     {{ campo("senha", "Senha", tipo="password", ajuda="Pelo menos 8 caracteres.", autocomplete="new-password") }}
     {{ campo("confirmacao", "Repita a senha", tipo="password", autocomplete="new-password") }}
+    {{ campo("email", "E-mail de recuperação (opcional)", tipo="email", ajuda="Se você esquecer a senha, o sistema envia um código para este e-mail.", autocomplete="email", obrigatorio=False) }}
 
     <div class="form__actions">
         <button type="submit" class="button button--primary">Criar conta e entrar</button>

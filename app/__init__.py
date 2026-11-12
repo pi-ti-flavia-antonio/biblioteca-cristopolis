@@ -6,11 +6,12 @@ from flask import Flask, render_template
 
 from . import auth, database, security
 from .texto import formatar_cpf, formatar_data, formatar_telefone, mascarar_cpf
-from caminhos import caminho_banco
+from caminhos import caminho_banco, caminho_email
 
 MENSAGENS_ERRO = {
     400: "Não foi possível concluir a ação. Volte à página anterior e tente de novo.",
     404: "Página não encontrada.",
+    413: "O arquivo enviado é grande demais. Volte e escolha uma foto menor.",
 }
 
 
@@ -19,8 +20,10 @@ def create_app(config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("BIBLIOTECA_SECRET_KEY") or secrets.token_hex(32),
         DATABASE=caminho_banco(),
+        ARQUIVO_EMAIL=caminho_email(),
         SESSION_COOKIE_SAMESITE="Lax",
         PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+        MAX_CONTENT_LENGTH=3 * 1024 * 1024,
     )
     if config:
         app.config.update(config)
@@ -51,6 +54,7 @@ def create_app(config=None):
     app.register_blueprint(relatorios_bp)
     app.register_error_handler(400, _pagina_erro)
     app.register_error_handler(404, _pagina_erro)
+    app.register_error_handler(413, _pagina_erro)
 
     return app
 

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ usuario.nome }} | Biblioteca Cristópolis{% endblock %}
+{% block pagina_titulo %}Usuários{% endblock %}
+{% block pagina_subtitulo %}Cadastro e consulta de leitores{% endblock %}
+
+{% block conteudo %}
+{% include "usuarios/_abas.html" %}
+
+<section class="panel" aria-labelledby="usuario-heading">
+    <div class="panel__header">
+        <h2 id="usuario-heading">{{ usuario.nome }}{% if not usuario.ativo %} <span class="badge badge--neutral">Inativo</span>{% endif %}</h2>
+        <a href="{{ url_for('usuarios.consultar') }}" class="panel__link">Voltar aos usuários</a>
+    </div>
+
+    <div class="perfil">
+        {% if usuario.tem_foto %}
+        <img class="perfil__foto" src="{{ url_for('usuarios.foto', usuario_id=usuario.id_usuario) }}" alt="Foto de {{ usuario.nome }}">
+        {% else %}
+        <div class="perfil__foto perfil__foto--vazia" role="img" aria-label="Sem foto">Sem foto</div>
+        {% endif %}
+
+        <dl class="perfil__dados">
+            <div><dt>Número da carteirinha</dt><dd>{{ usuario.numero_carteirinha or "-" }}</dd></div>
+            <div><dt>CPF</dt><dd>{{ (usuario.cpf | cpf_mascarado) or "-" }}</dd></div>
+            <div><dt>Telefone</dt><dd>{{ usuario.telefone | telefone }}</dd></div>
+            <div><dt>Tipo de usuário</dt><dd>{{ usuario.tipo_usuario | capitalize if usuario.tipo_usuario else "-" }}</dd></div>
+            <div><dt>E-mail</dt><dd>{{ usuario.email or "-" }}</dd></div>
+            <div><dt>Endereço</dt><dd>{{ usuario.endereco or "-" }}</dd></div>
+        </dl>
+    </div>
+
+    <div class="form__actions">
+        <a href="{{ url_for('usuarios.editar', usuario_id=usuario.id_usuario) }}" class="button button--primary">Editar</a>
+    </div>
+</section>
+{% endblock %}

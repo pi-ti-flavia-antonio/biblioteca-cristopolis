@@ -64,17 +64,61 @@
     </div>
     {% endif %}
 
-    <form method="post" class="form" novalidate data-confirmar="{{ 'Salvar as alterações do usuário?' if usuario_id else 'Confirmar cadastro do usuário?' }}">
+    <form method="post" enctype="multipart/form-data" class="form" novalidate data-confirmar="{{ 'Salvar as alterações do usuário?' if usuario_id else 'Confirmar cadastro do usuário?' }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="voltar" value="{{ voltar }}">
 
         <div class="form__grid">
             {{ campo("nome", "Nome completo", obrigatorio=True, tamanho_max=150, foco=not usuario_id) }}
+            {% if usuario_id %}
+            {{ campo("numero_carteirinha", "Número da carteirinha", tamanho_max=9) }}
+            {% else %}
+            <fieldset class="field field--wide">
+                <legend>Número da carteirinha <span class="field__required" title="Obrigatório">*</span></legend>
+                <label class="field__option">
+                    <input type="radio" name="carteirinha_modo" value="manual"{% if valores.carteirinha_modo != "automatico" %} checked{% endif %}>
+                    Escrever o número da carteirinha
+                </label>
+                <label class="field__option">
+                    <input type="radio" name="carteirinha_modo" value="automatico"{% if valores.carteirinha_modo == "automatico" %} checked{% endif %}>
+                    O número será gerado automaticamente pelo sistema
+                </label>
+                <input id="numero_carteirinha" name="numero_carteirinha" type="text" inputmode="numeric" maxlength="9" value="{{ valores.numero_carteirinha }}"
+                       class="input{% if erros.numero_carteirinha %} input--error{% endif %}" aria-label="Número da carteirinha"{% if erros.numero_carteirinha %} aria-invalid="true" aria-describedby="numero_carteirinha-msg"{% endif %}>
+                {% if erros.numero_carteirinha %}
+                <p class="field__error" id="numero_carteirinha-msg">{{ erros.numero_carteirinha }}</p>
+                {% else %}
+                <p class="field__hint">Para usuários antigos, digite o número da carteirinha (de 1 a 11046). Usuários novos ficam com o número gerado pelo sistema.</p>
+                {% endif %}
+            </fieldset>
+            {% endif %}
             {{ campo("cpf", "CPF", tamanho_max=14, placeholder="000.000.000-00") }}
             {{ campo("telefone", "Telefone", obrigatorio=True, tamanho_max=15, placeholder="(00) 00000-0000") }}
             {{ campo_select("tipo_usuario", "Tipo de usuário", tipos_usuario) }}
             {{ campo("email", "E-mail", tipo="email", tamanho_max=150) }}
             {{ campo("endereco", "Endereço", obrigatorio=True, tamanho_max=200) }}
+
+            <div class="field field--wide">
+                <label for="foto">Foto (opcional)</label>
+                <div class="foto-campo">
+                    {% if usuario_id and tem_foto %}
+                    <img class="foto-campo__atual" src="{{ url_for('usuarios.foto', usuario_id=usuario_id) }}" alt="Foto atual do usuário">
+                    {% endif %}
+                    <img id="foto-previa" class="foto-campo__previa" alt="Prévia da foto escolhida" hidden>
+                    <div class="foto-campo__controles">
+                        <input id="foto" name="foto" type="file" accept="image/jpeg,image/png"
+                               {%- if erros.foto %} aria-invalid="true" aria-describedby="foto-msg"{% endif %}>
+                        {% if usuario_id and tem_foto %}
+                        <label class="field__option"><input type="checkbox" name="remover_foto" value="1"> Remover a foto atual</label>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if erros.foto %}
+                <p class="field__error" id="foto-msg">{{ erros.foto }}</p>
+                {% else %}
+                <p class="field__hint">Imagem JPEG ou PNG. Se escolher uma foto nova, ela troca a atual.</p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="form__actions">

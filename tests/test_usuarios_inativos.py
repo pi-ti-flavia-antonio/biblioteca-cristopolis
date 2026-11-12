@@ -78,7 +78,7 @@ def test_emails_invalidos(post, email):
 def test_emails_validos(post, email):
     resposta = post(
         "/usuarios/novo",
-        {"nome": "Maria", "cpf": "39184726393", "telefone": "77998123456", "endereco": "Rua A, 1", "email": email},
+        {"nome": "Maria", "cpf": "39184726393", "telefone": "77998123456", "endereco": "Rua A, 1", "email": email, "carteirinha_modo": "automatico"},
     )
 
     assert resposta.status_code == 302, email
@@ -164,7 +164,7 @@ def test_inativo_some_da_lista_mas_aparece_com_o_filtro(client, post, criar_usua
     padrao = html(client.get("/usuarios"))
     com_inativos = html(client.get("/usuarios", query_string={"inativos": 1}))
 
-    linha = '<span class="table__title">{}'
+    linha = '>{}</a>'
     assert linha.format("Maria Oliveira") not in padrao and linha.format("Carlos Souza") in padrao
     assert linha.format("Maria Oliveira") in com_inativos and linha.format("Carlos Souza") in com_inativos
     assert "Inativo" in com_inativos

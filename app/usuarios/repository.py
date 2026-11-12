@@ -1,10 +1,12 @@
 from ..database import get_db
 from ..texto import limpar_digitos, normalizar
+from .validacao import ULTIMO_NUMERO_RESERVADO
 
 POR_PAGINA = 25
 
 _SELECT_USUARIOS = """
-    SELECT id_usuario, nome, cpf, telefone, email, endereco, tipo_usuario, ativo
+    SELECT id_usuario, nome, cpf, telefone, email, endereco, tipo_usuario, ativo, numero_carteirinha,
+           EXISTS (SELECT 1 FROM usuario_foto WHERE usuario_foto.id_usuario = usuario.id_usuario) AS tem_foto
       FROM usuario
 """
 
@@ -33,6 +35,9 @@ def _filtro_busca(termo, incluir_inativos=False):
         if len(digitos) >= 3:
             busca.append("cpf LIKE :cpf")
             parametros["cpf"] = f"%{digitos}%"
+        if termo.isdigit():
+            busca.append("numero_carteirinha = :carteirinha")
+            parametros["carteirinha"] = int(termo)
         condicoes.append("(" + " OR ".join(busca) + ")")
 
     if not incluir_inativos:
@@ -74,6 +79,41 @@ def buscar_por_cpf(cpf):
     return get_db().execute(
         "SELECT id_usuario, nome, ativo FROM usuario WHERE cpf = ?", (cpf,)
     ).fetchone()
+
+
+def buscar_por_carteirinha(numero):
+    return get_db().execute(
+        "SELECT id_usuario, nome, ativo FROM usuario WHERE numero_carteirinha = ?", (numero,)
+    ).fetchone()
+
+
+def proximo_numero_carteirinha():
+    """O maior número já usado acima da faixa reservada, mais 1 (o primeiro é 11047)."""
+    maior = get_db().execute(
+        "SELECT MAX(numero_carteirinha) FROM usuario WHERE numero_carteirinha > ?", (ULTIMO_NUMERO_RESERVADO,)
+    ).fetchone()[0]
+    return (maior or ULTIMO_NUMERO_RESERVADO) + 1
+
+
+def obter_foto(id_usuario):
+    return get_db().execute(
+        "SELECT tipo_conteudo, dados FROM usuario_foto WHERE id_usuario = ?", (id_usuario,)
+    ).fetchone()
+
+
+def salvar_foto(id_usuario, tipo_conteudo, dados):
+    db = get_db()
+    with db:
+        db.execute(
+            "INSERT OR REPLACE INTO usuario_foto (id_usuario, tipo_conteudo, dados) VALUES (?, ?, ?)",
+            (id_usuario, tipo_conteudo, dados),
+        )
+
+
+def remover_foto(id_usuario):
+    db = get_db()
+    with db:
+        db.execute("DELETE FROM usuario_foto WHERE id_usuario = ?", (id_usuario,))
 
 
 def total_usuarios():
@@ -126,8 +166,8 @@ def criar(dados):
     with db:
         cursor = db.execute(
             """
-            INSERT INTO usuario (nome, cpf, telefone, tipo_usuario, email, endereco)
-            VALUES (:nome, :cpf, :telefone, :tipo_usuario, :email, :endereco)
+            INSERT INTO usuario (nome, cpf, telefone, tipo_usuario, email, endereco, numero_carteirinha)
+            VALUES (:nome, :cpf, :telefone, :tipo_usuario, :email, :endereco, :numero_carteirinha)
             """,
             dados,
         )
@@ -141,7 +181,8 @@ def atualizar(id_usuario, dados):
             """
             UPDATE usuario
                SET nome = :nome, cpf = :cpf, telefone = :telefone,
-                   tipo_usuario = :tipo_usuario, email = :email, endereco = :endereco
+                   tipo_usuario = :tipo_usuario, email = :email, endereco = :endereco,
+                   numero_carteirinha = :numero_carteirinha
              WHERE id_usuario = :id_usuario
             """,
             {**dados, "id_usuario": id_usuario},

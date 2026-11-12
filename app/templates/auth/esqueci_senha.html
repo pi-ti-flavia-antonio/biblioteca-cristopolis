@@ -1,0 +1,32 @@
+{% extends "auth/base_simples.html" %}
+
+{% block titulo %}Esqueci minha senha | Biblioteca Cristópolis{% endblock %}
+
+{% block conteudo %}
+<h1 class="entrada__titulo">Esqueci minha senha</h1>
+
+{% if erro %}
+<div class="alert alert--error" role="alert">{{ erro }}</div>
+{% endif %}
+
+{% if pode_enviar %}
+<p class="panel__text">O sistema vai enviar um código de 6 dígitos para o e-mail <strong>{{ email }}</strong>. Com o código você cria uma senha nova.</p>
+
+<form method="post" action="{{ url_for('recuperacao.esqueci_senha') }}" class="form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__actions">
+        <button type="submit" class="button button--primary">Enviar código</button>
+    </div>
+</form>
+{% if tem_codigo %}
+<p class="field__hint">Já recebeu o código? <a href="{{ url_for('recuperacao.digitar_codigo') }}">Digite o código aqui</a>.</p>
+{% endif %}
+{% elif not email_cadastrado %}
+<p class="panel__text">Não há e-mail de recuperação cadastrado. Peça a quem cuida do sistema para criar uma senha nova no computador da biblioteca (arquivo redefinir_senha.py).</p>
+<p class="field__hint">Depois de entrar, cadastre o e-mail em Minha conta para usar a recuperação por e-mail da próxima vez.</p>
+{% else %}
+<p class="panel__text">O envio de e-mail ainda não foi configurado neste computador. Peça a quem cuida do sistema para configurar, ou para criar uma senha nova (arquivo redefinir_senha.py).</p>
+{% endif %}
+
+<p class="field__hint"><a href="{{ url_for('auth.login') }}">Voltar para a entrada</a></p>
+{% endblock %}

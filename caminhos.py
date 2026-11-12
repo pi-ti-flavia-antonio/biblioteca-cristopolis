@@ -19,3 +19,8 @@ def pasta_dados():
 
 def caminho_banco():
     return pasta_dados() / "biblioteca.db"
+
+
+def caminho_email():
+    """Arquivo com o Gmail e a senha de aplicativo usados para enviar o código de recuperação."""
+    return pasta_dados() / "email.json"

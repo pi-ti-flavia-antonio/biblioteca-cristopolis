@@ -25,17 +25,26 @@ CREATE TABLE IF NOT EXISTS usuario (
     email        TEXT,
     endereco     TEXT,
     tipo_usuario TEXT,
-    ativo        INTEGER NOT NULL DEFAULT 1
+    ativo        INTEGER NOT NULL DEFAULT 1,
+    numero_carteirinha INTEGER
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_cpf ON usuario (cpf) WHERE cpf IS NOT NULL;
+
+-- A foto fica no próprio banco (e não numa pasta) para entrar na cópia de segurança junto com o resto.
+CREATE TABLE IF NOT EXISTS usuario_foto (
+    id_usuario    INTEGER PRIMARY KEY REFERENCES usuario (id_usuario) ON DELETE CASCADE,
+    tipo_conteudo TEXT NOT NULL,
+    dados         BLOB NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS funcionario (
     id_funcionario INTEGER PRIMARY KEY AUTOINCREMENT,
     nome           TEXT NOT NULL,
     cargo          TEXT,
     login          TEXT NOT NULL UNIQUE,
-    senha_hash     TEXT NOT NULL
+    senha_hash     TEXT NOT NULL,
+    email_recuperacao TEXT
 );
 
 CREATE TABLE IF NOT EXISTS emprestimo (

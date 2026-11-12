@@ -912,3 +912,102 @@ button:focus-visible,
     font-size: 1.3rem;
     font-weight: 600;
 }
+
+fieldset.field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+fieldset.field legend {
+    padding: 0;
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.field .field__option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 400;
+}
+
+.foto-campo {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.foto-campo__previa,
+.foto-campo__atual {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    border: 1px solid #d6dbe3;
+    flex: 0 0 auto;
+}
+
+.foto-campo__previa[hidden] {
+    display: none;
+}
+
+.foto-campo__controles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.usuario-miniatura {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+    margin-right: 0.6rem;
+}
+
+.perfil {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+.perfil__foto {
+    width: 12rem;
+    height: 12rem;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    border: 1px solid #d6dbe3;
+    flex: 0 0 auto;
+}
+
+.perfil__foto--vazia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    background: #f3f4f6;
+    font-size: 0.9rem;
+}
+
+.perfil__dados {
+    flex: 1 1 18rem;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.perfil__dados dt {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.perfil__dados dd {
+    margin: 0;
+    font-size: 1rem;
+}

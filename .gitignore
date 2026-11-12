@@ -42,6 +42,7 @@ dist/
 
 # Chaves de criptografia
 *.key
+data/email.json
 
 # Credenciais e tokens do Google
 client_secret*.json

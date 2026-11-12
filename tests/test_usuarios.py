@@ -5,6 +5,7 @@ USUARIO_VALIDO = {
     "tipo_usuario": "aluno",
     "email": "maria@example.com",
     "endereco": "Rua das Flores, 10",
+    "carteirinha_modo": "automatico",
 }
 
 

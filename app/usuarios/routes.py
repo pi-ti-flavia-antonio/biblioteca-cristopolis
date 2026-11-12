@@ -1,6 +1,6 @@
 import math
 
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, url_for
 
 from . import repository, validacao
 from ..texto import mascarar_cpf
@@ -23,10 +23,28 @@ def _checar_regras_do_banco(dados, erros, usuario_atual=None):
             else:
                 erros["cpf"] = "Este CPF pertence a um usuário inativo."
             return existente
+    if dados["numero_carteirinha"]:
+        existente = repository.buscar_por_carteirinha(dados["numero_carteirinha"])
+        mesmo_usuario = (
+            usuario_atual is not None
+            and existente
+            and existente["id_usuario"] == usuario_atual["id_usuario"]
+        )
+        if existente and not mesmo_usuario:
+            erros["numero_carteirinha"] = (
+                f"Este número de carteirinha já é de {existente['nome']}."
+                if existente["ativo"]
+                else f"Este número de carteirinha é de um usuário inativo ({existente['nome']})."
+            )
     return None
 
 
-def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativo=None):
+def _foto_enviada():
+    """Valida a foto do formulário. Devolve (tipo, bytes) e preenche o erro, se houver."""
+    return validacao.validar_foto(request.files.get("foto"))
+
+
+def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativo=None, tem_foto=False):
     resposta = render_template(
         "usuarios/formulario.html",
         aba=aba,
@@ -36,6 +54,7 @@ def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativ
         tipos_usuario=validacao.TIPOS_USUARIO,
         voltar=voltar,
         cpf_inativo=cpf_inativo,
+        tem_foto=tem_foto,
     )
     return resposta, (400 if erros else 200)
 
@@ -81,6 +100,7 @@ def sugestoes():
             "id": usuario["id_usuario"],
             "titulo": usuario["nome"],
             "subtitulo": " · ".join(filter(None, [
+                f"Carteirinha {usuario['numero_carteirinha']}" if usuario["numero_carteirinha"] else "",
                 f"CPF {mascarar_cpf(usuario['cpf'])}" if usuario["cpf"] else "",
                 "" if usuario["ativo"] else "Inativo",
             ])),
@@ -99,12 +119,25 @@ def cadastrar():
     valores = validacao.valores_do_formulario(request.form)
     dados, erros = validacao.validar_usuario(valores)
     existente = _checar_regras_do_banco(dados, erros)
+    tipo_foto, foto, erro_foto = _foto_enviada()
+    if erro_foto:
+        erros["foto"] = erro_foto
+    elif erros and foto:
+        erros["foto"] = "Escolha a foto de novo: ela não foi guardada porque o formulário tinha erros."
     if erros:
         cpf_inativo = existente if existente is not None and not existente["ativo"] else None
         return _formulario(valores, erros, aba="cadastrar", voltar=voltar, cpf_inativo=cpf_inativo)
 
+    if valores["carteirinha_modo"] == "automatico":
+        dados["numero_carteirinha"] = repository.proximo_numero_carteirinha()
     id_usuario = repository.criar(dados)
-    flash(f"Usuário cadastrado: {dados['nome']}.", "success")
+    if foto:
+        repository.salvar_foto(id_usuario, tipo_foto, foto)
+    flash(
+        f"Usuário cadastrado: {dados['nome']}. Número da carteirinha: {dados['numero_carteirinha']}."
+        if dados["numero_carteirinha"] else f"Usuário cadastrado: {dados['nome']}.",
+        "success",
+    )
 
     if voltar == "emprestimo":
         return redirect(url_for("emprestimos.cadastrar", id_usuario=id_usuario))
@@ -115,17 +148,42 @@ def cadastrar():
 def editar(usuario_id):
     usuario = _obter_ou_404(usuario_id)
     if request.method == "GET":
-        return _formulario(validacao.valores_do_usuario(usuario), {}, usuario_id=usuario_id)
+        return _formulario(validacao.valores_do_usuario(usuario), {}, usuario_id=usuario_id, tem_foto=usuario["tem_foto"])
 
     valores = validacao.valores_do_formulario(request.form)
-    dados, erros = validacao.validar_usuario(valores)
+    dados, erros = validacao.validar_usuario(valores, numero_atual=usuario["numero_carteirinha"], edicao=True)
     _checar_regras_do_banco(dados, erros, usuario_atual=usuario)
+    tipo_foto, foto, erro_foto = _foto_enviada()
+    if erro_foto:
+        erros["foto"] = erro_foto
+    elif erros and foto:
+        erros["foto"] = "Escolha a foto de novo: ela não foi guardada porque o formulário tinha erros."
     if erros:
-        return _formulario(valores, erros, usuario_id=usuario_id)
+        return _formulario(valores, erros, usuario_id=usuario_id, tem_foto=usuario["tem_foto"])
 
     repository.atualizar(usuario_id, dados)
+    if foto:
+        repository.salvar_foto(usuario_id, tipo_foto, foto)
+    elif request.form.get("remover_foto") == "1":
+        repository.remover_foto(usuario_id)
     flash(f"Usuário atualizado: {dados['nome']}.", "success")
     return redirect(url_for("usuarios.consultar"))
+
+
+@usuarios_bp.get("/<int:usuario_id>")
+def ver(usuario_id):
+    return render_template("usuarios/ver.html", usuario=_obter_ou_404(usuario_id))
+
+
+@usuarios_bp.get("/<int:usuario_id>/foto")
+def foto(usuario_id):
+    registro = repository.obter_foto(usuario_id)
+    if registro is None:
+        abort(404)
+    resposta = Response(registro["dados"], mimetype=registro["tipo_conteudo"])
+    resposta.headers["X-Content-Type-Options"] = "nosniff"
+    resposta.headers["Cache-Control"] = "private, no-cache"
+    return resposta
 
 
 @usuarios_bp.route("/<int:usuario_id>/excluir", methods=["GET", "POST"])

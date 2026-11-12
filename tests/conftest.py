@@ -113,6 +113,7 @@ def criar_usuario(app):
             "tipo_usuario": None,
             "email": None,
             "endereco": None,
+            "numero_carteirinha": None,
             **extra,
         }
         with app.app_context():

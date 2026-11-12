@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% macro campo(prefixo, erros, nome, rotulo, tipo="text", valor="", ajuda="", foco=False, autocomplete="off") -%}
+{% macro campo(prefixo, erros, nome, rotulo, tipo="text", valor="", ajuda="", foco=False, autocomplete="off", obrigatorio=True) -%}
     <div class="field">
-        <label for="{{ prefixo }}-{{ nome }}">{{ rotulo }} <span class="field__required" title="Obrigatório">*</span></label>
+        <label for="{{ prefixo }}-{{ nome }}">{{ rotulo }}{% if obrigatorio %} <span class="field__required" title="Obrigatório">*</span>{% endif %}</label>
         <input id="{{ prefixo }}-{{ nome }}" name="{{ nome }}" type="{{ tipo }}" class="input{% if erros[nome] %} input--error{% endif %}"
                {%- if tipo != "password" %} value="{{ valor }}"{% endif %}
                autocomplete="{{ autocomplete }}"
@@ -34,6 +34,22 @@
 
         <div class="form__actions">
             <button type="submit" class="button button--primary">Salvar alterações</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel panel--narrow" aria-labelledby="email-heading">
+    <h2 id="email-heading">E-mail de recuperação</h2>
+    <p class="panel__text">Se você esquecer a senha, o sistema envia um código para este e-mail. Deixe em branco para não usar a recuperação por e-mail.</p>
+
+    <form method="post" action="{{ url_for('auth.alterar_email_da_conta') }}" class="form" novalidate data-confirmar="Salvar o e-mail de recuperação?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {{ campo("email", erros_email, "email", "E-mail", tipo="email", valor=email, autocomplete="email", obrigatorio=False) }}
+        {{ campo("email", erros_email, "senha_atual", "Senha atual", tipo="password", ajuda="Digite a senha para confirmar a mudança.", autocomplete="current-password") }}
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Salvar e-mail</button>
         </div>
     </form>
 </section>

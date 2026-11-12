@@ -22,6 +22,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .database import get_db
+from .usuarios.validacao import erro_de_email
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -31,7 +32,7 @@ ESPERA_SEGUNDOS = 60
 TAMANHO_MAX_NOME = 100
 TAMANHO_MAX_LOGIN = 40
 
-ENDPOINTS_LIVRES = {"static", "auth.login", "auth.primeiro_acesso"}
+ENDPOINTS_LIVRES = {"static", "auth.login", "auth.primeiro_acesso", "recuperacao.esqueci_senha", "recuperacao.digitar_codigo"}
 
 
 # Conta
@@ -40,7 +41,7 @@ ENDPOINTS_LIVRES = {"static", "auth.login", "auth.primeiro_acesso"}
 def conta():
     """A conta da funcionária, ou None se ainda não foi criada."""
     return get_db().execute(
-        "SELECT id_funcionario, nome, login, senha_hash FROM funcionario ORDER BY id_funcionario LIMIT 1"
+        "SELECT id_funcionario, nome, login, senha_hash, email_recuperacao FROM funcionario ORDER BY id_funcionario LIMIT 1"
     ).fetchone()
 
 
@@ -79,12 +80,21 @@ def alterar_dados(nome, login):
         )
 
 
-def criar_conta(nome, login, senha):
+def alterar_email_de_recuperacao(email):
+    db = get_db()
+    with db:
+        db.execute(
+            "UPDATE funcionario SET email_recuperacao = ? WHERE id_funcionario = ?",
+            (email or None, conta()["id_funcionario"]),
+        )
+
+
+def criar_conta(nome, login, senha, email=None):
     db = get_db()
     with db:
         cursor = db.execute(
-            "INSERT INTO funcionario (nome, cargo, login, senha_hash) VALUES (?, 'Bibliotecária', ?, ?)",
-            (nome, login, generate_password_hash(senha)),
+            "INSERT INTO funcionario (nome, cargo, login, senha_hash, email_recuperacao) VALUES (?, 'Bibliotecária', ?, ?, ?)",
+            (nome, login, generate_password_hash(senha), email or None),
         )
     return cursor.lastrowid
 
@@ -118,7 +128,7 @@ def _registrar_falha():
         controle["bloqueado_ate"] = time.monotonic() + ESPERA_SEGUNDOS
 
 
-def _zerar_falhas():
+def zerar_falhas():
     controle = _controle()
     controle["falhas"] = 0
     controle["bloqueado_ate"] = 0.0
@@ -189,7 +199,7 @@ def login():
     # A senha é conferida mesmo quando o usuário está errado, para o tempo de resposta não revelar qual dos dois falhou.
     senha_certa = check_password_hash(funcionaria["senha_hash"], senha)
     if senha_certa and login_digitado.casefold() == funcionaria["login"].casefold():
-        _zerar_falhas()
+        zerar_falhas()
         _entrar(funcionaria["id_funcionario"])
         return redirect(proximo or url_for("main.index"))
 
@@ -202,12 +212,13 @@ def primeiro_acesso():
     if conta() is not None:
         return redirect(url_for("auth.login"))
 
-    valores = {"nome": "", "login": ""}
+    valores = {"nome": "", "login": "", "email": ""}
     erros = {}
     if request.method == "POST":
         valores = {
             "nome": request.form.get("nome", "").strip(),
             "login": request.form.get("login", "").strip(),
+            "email": request.form.get("email", "").strip(),
         }
         senha = request.form.get("senha", "")
         confirmacao = request.form.get("confirmacao", "")
@@ -219,9 +230,13 @@ def primeiro_acesso():
         erro_senha = validar_nova_senha(senha, confirmacao, valores["login"])
         if erro_senha:
             erros["senha"] = erro_senha
+        if valores["email"]:
+            erro = erro_de_email(valores["email"])
+            if erro:
+                erros["email"] = erro
 
         if not erros:
-            id_funcionario = criar_conta(valores["nome"], valores["login"], senha)
+            id_funcionario = criar_conta(valores["nome"], valores["login"], senha, valores["email"])
             _entrar(id_funcionario)
             flash("Conta criada. Você já está dentro do sistema.", "success")
             return redirect(url_for("main.index"))
@@ -236,12 +251,14 @@ def sair():
     return redirect(url_for("auth.login"))
 
 
-def _tela_conta(erros_dados=None, erros_senha=None, valores=None):
-    erros_dados, erros_senha = erros_dados or {}, erros_senha or {}
+def _tela_conta(erros_dados=None, erros_senha=None, valores=None, erros_email=None, email=None):
+    erros_dados, erros_senha, erros_email = erros_dados or {}, erros_senha or {}, erros_email or {}
     valores = valores or {"nome": g.funcionaria["nome"], "login": g.funcionaria["login"]}
-    status = 400 if (erros_dados or erros_senha) else 200
+    if email is None:
+        email = g.funcionaria["email_recuperacao"] or ""
+    status = 400 if (erros_dados or erros_senha or erros_email) else 200
     return render_template(
-        "auth/conta.html", erros_dados=erros_dados, erros_senha=erros_senha, valores=valores
+        "auth/conta.html", erros_dados=erros_dados, erros_senha=erros_senha, erros_email=erros_email, valores=valores, email=email
     ), status
 
 
@@ -266,6 +283,25 @@ def alterar_dados_da_conta():
 
     alterar_dados(valores["nome"], valores["login"])
     flash("Dados da conta atualizados.", "success")
+    return redirect(url_for("auth.minha_conta"))
+
+
+@auth_bp.post("/conta/email")
+def alterar_email_da_conta():
+    email = request.form.get("email", "").strip()
+    erros = {}
+    if email:
+        erro = erro_de_email(email)
+        if erro:
+            erros["email"] = erro
+    if not check_password_hash(g.funcionaria["senha_hash"], request.form.get("senha_atual", "")):
+        erros["senha_atual"] = "A senha atual está incorreta."
+
+    if erros:
+        return _tela_conta(erros_email=erros, email=email)
+
+    alterar_email_de_recuperacao(email)
+    flash("E-mail de recuperação salvo." if email else "E-mail de recuperação removido.", "success")
     return redirect(url_for("auth.minha_conta"))
 
 
@@ -296,6 +332,9 @@ def trocar_senha():
 
 
 def init_app(app):
+    from .recuperacao import recuperacao_bp
+
     app.register_blueprint(auth_bp)
+    app.register_blueprint(recuperacao_bp)
     app.before_request(exigir_login)
     app.context_processor(lambda: {"funcionaria": g.get("funcionaria")})

@@ -18,13 +18,13 @@ def test_lista_mostra_apenas_emprestimos_ativos(client, criar_usuario, criar_liv
     id_livro_ativo = criar_livro("Dom Casmurro", quantidade=1)
     registrar_emprestimo(id_livro_ativo)
 
-    id_livro_devolvido = criar_livro("1984", quantidade=1)
+    id_livro_devolvido = criar_livro("Revolução dos Bichos", quantidade=1)
     registrar_emprestimo(id_livro_devolvido, status="devolvido")
 
     pagina = html(client.get("/devolucoes"))
 
     assert "Dom Casmurro" in pagina
-    assert "1984" not in pagina
+    assert "Revolução dos Bichos" not in pagina
 
 
 def test_registrar_devolucao_no_prazo(client, post, criar_usuario, criar_livro, registrar_emprestimo, consulta):
@@ -92,7 +92,7 @@ def test_usuario_pode_emprestar_de_novo_apos_devolver(client, post, criar_usuari
     id_emprestimo = consulta("SELECT id_emprestimo FROM emprestimo")[0]["id_emprestimo"]
     post(f"/devolucoes/{id_emprestimo}/registrar")
 
-    outro_livro = criar_livro("1984", quantidade=1)
+    outro_livro = criar_livro("Revolução dos Bichos", quantidade=1)
     resposta = post("/emprestimos/novo", {"id_usuario": id_usuario, "id_livro": outro_livro})
 
     assert resposta.status_code == 302
@@ -131,7 +131,7 @@ def test_busca_por_livro_ou_usuario(client, criar_usuario, criar_livro, registra
     registrar_emprestimo(id_livro_a, id_usuario=id_usuario_a)
 
     id_usuario_b = criar_usuario("Carlos Souza", cpf="52998224725")
-    id_livro_b = criar_livro("1984", quantidade=1)
+    id_livro_b = criar_livro("Revolução dos Bichos", quantidade=1)
     registrar_emprestimo(id_livro_b, id_usuario=id_usuario_b)
 
     pagina = html(client.get("/devolucoes", query_string={"q": "carlos"}))
