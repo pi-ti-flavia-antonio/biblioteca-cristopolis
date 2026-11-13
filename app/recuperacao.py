@@ -103,11 +103,14 @@ def digitar_codigo():
         restantes = TENTATIVAS_DO_CODIGO - estado["tentativas"]
         return render_template("auth/codigo_senha.html", erros={"codigo": f"Código incorreto. Você ainda tem {restantes} tentativa(s)."}), 400
 
-    erro_senha = auth.validar_nova_senha(senha, confirmacao, auth.conta()["login"])
+    conta = auth.conta()
+    erro_senha = auth.validar_nova_senha(senha, confirmacao, conta["login"])
     if erro_senha:
         return render_template("auth/codigo_senha.html", erros={"senha": erro_senha}), 400
 
     auth.redefinir_senha(senha)
+    if conta["email_recuperacao"]:
+        email_envio.avisar_troca_de_senha(conta["email_recuperacao"])
     auth.zerar_falhas()
     _apagar_codigo()
     flash("Senha alterada. Entre com a nova senha.", "success")

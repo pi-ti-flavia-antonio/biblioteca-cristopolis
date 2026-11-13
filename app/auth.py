@@ -21,6 +21,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from . import email_envio
 from .database import get_db
 from .usuarios.validacao import erro_de_email
 
@@ -327,6 +328,8 @@ def trocar_senha():
         return _tela_conta(erros_senha=erros)
 
     redefinir_senha(nova)
+    if g.funcionaria["email_recuperacao"]:
+        email_envio.avisar_troca_de_senha(g.funcionaria["email_recuperacao"])
     flash("Senha alterada.", "success")
     return redirect(url_for("auth.minha_conta"))
 

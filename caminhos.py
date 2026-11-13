@@ -21,6 +21,11 @@ def caminho_banco():
     return pasta_dados() / "biblioteca.db"
 
 
+def caminho_chave():
+    """Chave de criptografia do backup, também usada para proteger a senha do e-mail."""
+    return pasta_dados() / "chave_backup.key"
+
+
 def caminho_email():
     """Arquivo com o Gmail e a senha de aplicativo usados para enviar o código de recuperação."""
     return pasta_dados() / "email.json"

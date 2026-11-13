@@ -6,7 +6,7 @@ from flask import Flask, render_template
 
 from . import auth, database, security
 from .texto import formatar_cpf, formatar_data, formatar_telefone, mascarar_cpf
-from caminhos import caminho_banco, caminho_email
+from caminhos import caminho_banco, caminho_chave, caminho_email
 
 MENSAGENS_ERRO = {
     400: "Não foi possível concluir a ação. Volte à página anterior e tente de novo.",
@@ -21,6 +21,7 @@ def create_app(config=None):
         SECRET_KEY=os.environ.get("BIBLIOTECA_SECRET_KEY") or secrets.token_hex(32),
         DATABASE=caminho_banco(),
         ARQUIVO_EMAIL=caminho_email(),
+        ARQUIVO_CHAVE=caminho_chave(),
         SESSION_COOKIE_SAMESITE="Lax",
         PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
         MAX_CONTENT_LENGTH=3 * 1024 * 1024,

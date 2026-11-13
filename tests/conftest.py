@@ -1,3 +1,4 @@
+import smtplib
 from datetime import date, timedelta
 
 import pytest
@@ -15,9 +16,27 @@ SENHA_DE_TESTE = "senha-de-teste"
 _HASH_DE_TESTE = generate_password_hash(SENHA_DE_TESTE)
 
 
+@pytest.fixture(autouse=True)
+def sem_envio_de_email_de_verdade(monkeypatch):
+    """Nenhum teste pode mandar e-mail de verdade, mesmo que exista um email.json neste computador."""
+    def proibido(*args, **kwargs):
+        raise RuntimeError("Um teste tentou enviar e-mail de verdade. Troque o envio por um simulado.")
+
+    monkeypatch.setattr(smtplib, "SMTP_SSL", proibido)
+
+
 @pytest.fixture
 def app(tmp_path):
-    return create_app({"TESTING": True, "DATABASE": tmp_path / "teste.db", "SECRET_KEY": "teste"})
+    return create_app(
+        {
+            "TESTING": True,
+            "DATABASE": tmp_path / "teste.db",
+            "SECRET_KEY": "teste",
+            # Arquivos de e-mail e de chave dentro da pasta temporária: nunca os do computador.
+            "ARQUIVO_EMAIL": tmp_path / "email.json",
+            "ARQUIVO_CHAVE": tmp_path / "chave_backup.key",
+        }
+    )
 
 
 @pytest.fixture

@@ -10,11 +10,9 @@ ficam no arquivo email.json, na pasta de dados do sistema, fora do Git.
 """
 
 import getpass
-import json
 import sys
 
 from app import create_app, email_envio
-from caminhos import caminho_email
 
 
 def configurar(remetente, senha):
@@ -27,16 +25,16 @@ def configurar(remetente, senha):
     if "@" not in remetente or not senha:
         return False, "Informe o Gmail e a senha de aplicativo."
 
-    caminho_email().write_text(json.dumps({"remetente": remetente, "senha_app": senha}), encoding="utf-8")
-
     app = create_app()
     with app.app_context():
+        criptografada = email_envio.salvar_configuracao(remetente, senha)
         try:
             email_envio.enviar(remetente, "Teste do sistema da biblioteca", "O envio de e-mail do sistema da biblioteca está funcionando.\n")
         except email_envio.FalhaNoEnvio:
             return False, ("Os dados foram salvos, mas o e-mail de teste não saiu. "
                            "Confira a internet, se a verificação em duas etapas está ativa e se a senha de aplicativo foi copiada certa.")
-    return True, f"Pronto. Um e-mail de teste foi enviado para {remetente}."
+    aviso = "" if criptografada else " A senha ficou sem criptografia, porque a chave do backup ainda não existe neste computador."
+    return True, f"Pronto. Um e-mail de teste foi enviado para {remetente}.{aviso}"
 
 
 def main():

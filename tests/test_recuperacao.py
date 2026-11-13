@@ -348,3 +348,68 @@ def test_erro_de_rede_vira_falha_no_envio(app, tmp_path, monkeypatch):
 
     with app.app_context(), pytest.raises(email_envio.FalhaNoEnvio):
         email_envio.enviar("maria@example.com", "Assunto", "Texto")
+
+
+# Aviso por e-mail quando a senha é trocada
+
+
+@pytest.fixture
+def avisos(monkeypatch):
+    enviados = []
+    monkeypatch.setattr(email_envio, "avisar_troca_de_senha", lambda destino: enviados.append(destino) or True)
+    return enviados
+
+
+def test_recuperar_a_senha_avisa_no_email_cadastrado(client_anonimo, com_email, emails, avisos):
+    _redefinir(client_anonimo, _pedir_codigo(client_anonimo, emails))
+
+    assert avisos == ["maria@example.com"]
+
+
+def test_senha_nova_invalida_nao_manda_aviso(client_anonimo, com_email, emails, avisos):
+    _redefinir(client_anonimo, _pedir_codigo(client_anonimo, emails), senha="curta")
+
+    assert avisos == []
+
+
+def test_trocar_a_senha_em_minha_conta_avisa_no_email_cadastrado(client, com_email, avisos):
+    resposta = _post(client, "/conta/senha", {"senha_atual": SENHA_DE_TESTE, "senha": "senha-nova-123", "confirmacao": "senha-nova-123"})
+
+    assert resposta.status_code == 302
+    assert avisos == ["maria@example.com"]
+
+
+def test_sem_email_cadastrado_nao_manda_aviso(client, avisos):
+    _post(client, "/conta/senha", {"senha_atual": SENHA_DE_TESTE, "senha": "senha-nova-123", "confirmacao": "senha-nova-123"})
+
+    assert avisos == []
+
+
+def test_falha_no_aviso_nao_impede_a_troca_da_senha(client_anonimo, com_email, emails, monkeypatch):
+    def sem_rede(*args, **kwargs):
+        raise email_envio.FalhaNoEnvio()
+
+    monkeypatch.setattr(email_envio, "enviar", sem_rede)
+
+    resposta = _redefinir(client_anonimo, _pedir_codigo(client_anonimo, emails))
+
+    assert resposta.status_code == 302
+    assert _post(client_anonimo, "/entrar", {"login": LOGIN_DE_TESTE, "senha": "senha-nova-123"}).status_code == 302
+
+
+def test_o_texto_do_aviso_diz_quando_e_o_que_fazer(app, monkeypatch):
+    enviados = []
+    monkeypatch.setattr(email_envio, "enviar", lambda destino, assunto, texto: enviados.append((destino, assunto, texto)))
+
+    with app.app_context():
+        assert email_envio.avisar_troca_de_senha("maria@example.com") is True
+
+    destino, assunto, texto = enviados[0]
+    assert destino == "maria@example.com" and "trocada" in assunto
+    assert "Se não foi, avise" in texto
+    assert "senha-" not in texto
+
+
+def test_aviso_sem_configuracao_de_envio_nao_quebra(app):
+    with app.app_context():
+        assert email_envio.avisar_troca_de_senha("maria@example.com") is False
