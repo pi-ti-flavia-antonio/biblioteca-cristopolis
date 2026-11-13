@@ -88,8 +88,12 @@ def enviar_backup(servico, caminho_backup):
 
     if not ID_PASTA_BACKUP:
         raise RuntimeError(
-            "A pasta de backup do Google Drive não foi configurada."
+            "A pasta de backup do Google Drive não foi configurada. "
+            "Configure a variável de ambiente "
+            "BIBLIOTECA_DRIVE_FOLDER_ID no Windows "
+            "com o ID da pasta de destino e reinicie o programa."
         )
+
 
     metadados["parents"] = [ID_PASTA_BACKUP]
 
