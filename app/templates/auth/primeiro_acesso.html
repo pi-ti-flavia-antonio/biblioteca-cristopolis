@@ -31,6 +31,7 @@
     {{ campo("senha", "Senha", tipo="password", ajuda="Pelo menos 8 caracteres.", autocomplete="new-password") }}
     {{ campo("confirmacao", "Repita a senha", tipo="password", autocomplete="new-password") }}
     {{ campo("email", "E-mail de recuperação (opcional)", tipo="email", ajuda="Se você esquecer a senha, o sistema envia um código para este e-mail.", autocomplete="email", obrigatorio=False) }}
+    {{ campo("email_confirmacao", "Repita o e-mail", tipo="email", ajuda="Digite de novo para conferir. Se não for usar o e-mail, deixe os dois em branco.", autocomplete="off", obrigatorio=False) }}
 
     <div class="form__actions">
         <button type="submit" class="button button--primary">Criar conta e entrar</button>

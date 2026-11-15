@@ -46,10 +46,32 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         {{ campo("email", erros_email, "email", "E-mail", tipo="email", valor=email, autocomplete="email", obrigatorio=False) }}
+        {{ campo("email", erros_email, "email_confirmacao", "Repita o e-mail", tipo="email", valor="", ajuda="Digite de novo para conferir.", autocomplete="off", obrigatorio=False) }}
         {{ campo("email", erros_email, "senha_atual", "Senha atual", tipo="password", ajuda="Digite a senha para confirmar a mudança.", autocomplete="current-password") }}
 
         <div class="form__actions">
             <button type="submit" class="button button--primary">Salvar e-mail</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel panel--narrow" aria-labelledby="envio-heading">
+    <h2 id="envio-heading">E-mail que envia o código</h2>
+    {% if remetente_atual %}
+    <p class="panel__text">Configurado: <strong>{{ remetente_atual }}</strong>. Para trocar, preencha de novo.</p>
+    {% else %}
+    <p class="panel__text">Ainda não configurado. Sem isso o sistema não consegue enviar o código de recuperação de senha. Use um Gmail com uma senha de aplicativo do Google.</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('auth.configurar_email_de_envio') }}" class="form" novalidate data-confirmar="Salvar o e-mail que envia o código? O sistema vai mandar um e-mail de teste.">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {{ campo("envio", erros_envio, "remetente", "Gmail que envia", tipo="email", valor=remetente, autocomplete="off") }}
+        {{ campo("envio", erros_envio, "senha_app", "Senha de aplicativo do Google (16 letras)", tipo="password", ajuda="Não é a senha normal do e-mail.", autocomplete="off") }}
+        {{ campo("envio", erros_envio, "senha_atual", "Senha atual", tipo="password", ajuda="Digite a senha do sistema para confirmar.", autocomplete="current-password") }}
+
+        <div class="form__actions">
+            <button type="submit" class="button button--primary">Salvar e testar</button>
         </div>
     </form>
 </section>

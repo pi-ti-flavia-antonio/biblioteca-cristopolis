@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>E-mail de recuperação de senha: passo a passo</title>
+<style>
+  @page { size: A4; margin: 14mm 16mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 11.5pt; line-height: 1.45; color: #1d2433; }
+  h1 { font-size: 21pt; margin: 0 0 4px; color: #1f3a68; }
+  .sub { color: #5a6478; margin: 0 0 18px; }
+  h2 { font-size: 14.5pt; margin: 22px 0 8px; color: #1f3a68; border-bottom: 2px solid #d9e1f0; padding-bottom: 3px; }
+  .caixa { border: 1px solid #c9d4ea; background: #f3f6fc; border-radius: 6px; padding: 10px 14px; margin: 10px 0; }
+  .caixa p { margin: 4px 0; }
+  .ok { border-color: #b8dcc4; background: #eff9f2; }
+  ol, ul { margin: 6px 0 6px 22px; padding: 0; }
+  li { margin: 5px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  th, td { border: 1px solid #c9d4ea; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #e8eef9; }
+  code { background: #eef1f7; padding: 1px 5px; border-radius: 3px; font-size: 11pt; }
+  section { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>E-mail de recuperação de senha</h1>
+<p class="sub">Passo a passo para a Biblioteca Municipal de Cristópolis</p>
+
+<h2>Antes de começar: são dois e-mails com funções diferentes</h2>
+<table>
+  <tr><th></th><th>E-mail que envia</th><th>E-mail que recebe</th></tr>
+  <tr><td><b>O que faz</b></td><td>Manda o código de 6 números.</td><td>Recebe o código quando a bibliotecária esquece a senha.</td></tr>
+  <tr><td><b>Tipo de e-mail</b></td><td>Precisa ser Gmail.</td><td>Qualquer e-mail (Gmail, Outlook, Yahoo...).</td></tr>
+  <tr><td><b>O que preparar</b></td><td>Ativar a verificação em duas etapas e criar uma senha de aplicativo (Parte 1).</td><td>Nada. Só cadastrar no sistema (Parte 2).</td></tr>
+  <tr><td><b>Quando</b></td><td>Uma vez só, no computador da biblioteca.</td><td>Uma vez só, e de novo se o e-mail mudar.</td></tr>
+</table>
+<div class="caixa ok">
+  <p><b>Os dois podem ser o mesmo e-mail.</b> Se a biblioteca tem um Gmail, ele pode enviar e receber o código. Funciona normalmente. Nesse caso, faça a Parte 1 e a Parte 2 com o mesmo endereço.</p>
+  <p>Se o e-mail da biblioteca <b>não</b> for Gmail, ele pode continuar sendo o que recebe. Para enviar, crie um Gmail novo só para o sistema.</p>
+</div>
+
+<h2>Parte 1: preparar o Gmail que envia</h2>
+<ol>
+  <li>Entre no Gmail que vai enviar os códigos.</li>
+  <li>Abra <code>myaccount.google.com</code> e clique em <b>Segurança</b>.</li>
+  <li>Procure <b>Verificação em duas etapas</b> e ative. Se já estiver ativa, vá para o passo 4.</li>
+  <li>Abra <code>myaccount.google.com/apppasswords</code> (ou procure por <b>Senhas de app</b> na busca da conta).</li>
+  <li>Em nome do app, escreva <b>Biblioteca</b> e clique em <b>Criar</b>.</li>
+  <li>O Google mostra uma senha de <b>16 letras</b>. <b>Copie agora</b>: ela aparece só uma vez. Não é a senha normal do e-mail.</li>
+  <li>No sistema, entre e clique em <b>Minha conta</b>. Procure a parte <b>E-mail que envia o código</b>.</li>
+  <li>Em <b>Gmail que envia</b>, escreva o Gmail. Em <b>Senha de aplicativo</b>, cole as 16 letras. Em <b>Senha atual</b>, digite a senha do sistema.</li>
+  <li>Clique em <b>Salvar e testar</b> e confirme. O sistema manda um e-mail de teste e só guarda os dados se o Gmail aceitar.</li>
+  <li>Abra a caixa de entrada desse Gmail. Deve ter chegado uma mensagem chamada <b>Teste do sistema da biblioteca</b>. Se chegou, a Parte 1 está pronta.</li>
+</ol>
+<p>Não precisa de terminal nem de programa de computador. A senha de aplicativo fica guardada com criptografia e não aparece mais na tela.</p>
+
+<h2>Parte 2: cadastrar o e-mail que recebe</h2>
+<ol>
+  <li>Entre no sistema e clique em <b>Minha conta</b>.</li>
+  <li>Na parte <b>E-mail de recuperação</b>, escreva o e-mail em <b>E-mail</b> e escreva o mesmo e-mail de novo em <b>Repita o e-mail</b>.</li>
+  <li>Digite a <b>senha atual</b> do sistema e clique em <b>Salvar e-mail</b>.</li>
+</ol>
+<p>No <b>primeiro acesso</b> ao sistema, esses mesmos campos aparecem na tela de criar a conta.</p>
+
+<h2>Parte 3: testar</h2>
+<ol>
+  <li>Clique em <b>Sair</b>. Na tela de entrada, clique em <b>Esqueci minha senha</b>.</li>
+  <li>Clique em <b>Enviar código</b>.</li>
+  <li>Abra o e-mail que recebe. A mensagem se chama <b>Código para redefinir a senha da biblioteca</b>.</li>
+  <li>Digite o código e escolha uma senha nova. Anote a senha nova em um lugar seguro.</li>
+</ol>
+<div class="caixa">
+  <p>O código vale <b>10 minutos</b> e só funciona uma vez. Depois de 5 erros, ele é cancelado e é preciso pedir outro.</p>
+  <p>Quando a senha é trocada, o sistema manda um aviso para o mesmo e-mail.</p>
+</div>
+
+<h2>O código não chegou. E agora?</h2>
+<ul>
+  <li>Espere 1 minuto e olhe a caixa de <b>Spam</b> (lixo eletrônico) e as abas <b>Promoções</b> e <b>Atualizações</b>.</li>
+  <li>Procure pelo nome <b>Código para redefinir a senha da biblioteca</b>.</li>
+  <li>Se o e-mail que envia e o que recebe são o mesmo, a mensagem pode aparecer junto das enviadas. Procure pelo assunto.</li>
+  <li>Se mesmo assim não chegar, clique em <b>Pedir outro código</b>. O sistema só deixa pedir de novo depois de 1 minuto.</li>
+  <li>Confira se o computador está com internet.</li>
+  <li>Se o teste da Parte 1 nunca chegou, refaça a Parte 1 com cuidado: a senha de 16 letras precisa ser copiada inteira e a verificação em duas etapas precisa estar ativa.</li>
+  <li>Se nada resolver, chame a Flávia ou o Antonio.</li>
+</ul>
+
+</body>
+</html>

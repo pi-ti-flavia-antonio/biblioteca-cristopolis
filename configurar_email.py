@@ -1,7 +1,7 @@
 """Configura o Gmail que envia o código de recuperação de senha.
 
-Jeito mais fácil: dar dois cliques em configurar_email_janela.pyw, que abre uma janela.
-Pelo terminal:
+Jeito mais fácil: rodar "python configurar_email_janela.pyw" no terminal, que abre uma janela.
+Só pelo terminal:
 
     python configurar_email.py
 

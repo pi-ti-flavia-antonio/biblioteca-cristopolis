@@ -208,18 +208,26 @@ def login():
     return _tela_login("Usuário ou senha incorretos.", 401, login=login_digitado, proximo=proximo)
 
 
+MSG_EMAILS_DIFERENTES = "Os dois e-mails são diferentes."
+
+
+def _emails_iguais(email, confirmacao):
+    return email.casefold() == confirmacao.casefold()
+
+
 @auth_bp.route("/primeiro-acesso", methods=["GET", "POST"])
 def primeiro_acesso():
     if conta() is not None:
         return redirect(url_for("auth.login"))
 
-    valores = {"nome": "", "login": "", "email": ""}
+    valores = {"nome": "", "login": "", "email": "", "email_confirmacao": ""}
     erros = {}
     if request.method == "POST":
         valores = {
             "nome": request.form.get("nome", "").strip(),
             "login": request.form.get("login", "").strip(),
             "email": request.form.get("email", "").strip(),
+            "email_confirmacao": request.form.get("email_confirmacao", "").strip(),
         }
         senha = request.form.get("senha", "")
         confirmacao = request.form.get("confirmacao", "")
@@ -235,6 +243,8 @@ def primeiro_acesso():
             erro = erro_de_email(valores["email"])
             if erro:
                 erros["email"] = erro
+        if "email" not in erros and not _emails_iguais(valores["email"], valores["email_confirmacao"]):
+            erros["email_confirmacao"] = MSG_EMAILS_DIFERENTES
 
         if not erros:
             id_funcionario = criar_conta(valores["nome"], valores["login"], senha, valores["email"])
@@ -252,14 +262,19 @@ def sair():
     return redirect(url_for("auth.login"))
 
 
-def _tela_conta(erros_dados=None, erros_senha=None, valores=None, erros_email=None, email=None):
+def _tela_conta(erros_dados=None, erros_senha=None, valores=None, erros_email=None, email=None, erros_envio=None, remetente=None):
     erros_dados, erros_senha, erros_email = erros_dados or {}, erros_senha or {}, erros_email or {}
+    erros_envio = erros_envio or {}
+    remetente_atual = email_envio.remetente_atual()
+    if remetente is None:
+        remetente = remetente_atual or ""
     valores = valores or {"nome": g.funcionaria["nome"], "login": g.funcionaria["login"]}
     if email is None:
         email = g.funcionaria["email_recuperacao"] or ""
-    status = 400 if (erros_dados or erros_senha or erros_email) else 200
+    status = 400 if (erros_dados or erros_senha or erros_email or erros_envio) else 200
     return render_template(
-        "auth/conta.html", erros_dados=erros_dados, erros_senha=erros_senha, erros_email=erros_email, valores=valores, email=email
+        "auth/conta.html", erros_dados=erros_dados, erros_senha=erros_senha, erros_email=erros_email, valores=valores, email=email,
+        erros_envio=erros_envio, remetente=remetente, remetente_atual=remetente_atual,
     ), status
 
 
@@ -290,11 +305,14 @@ def alterar_dados_da_conta():
 @auth_bp.post("/conta/email")
 def alterar_email_da_conta():
     email = request.form.get("email", "").strip()
+    confirmacao = request.form.get("email_confirmacao", "").strip()
     erros = {}
     if email:
         erro = erro_de_email(email)
         if erro:
             erros["email"] = erro
+    if "email" not in erros and not _emails_iguais(email, confirmacao):
+        erros["email_confirmacao"] = MSG_EMAILS_DIFERENTES
     if not check_password_hash(g.funcionaria["senha_hash"], request.form.get("senha_atual", "")):
         erros["senha_atual"] = "A senha atual está incorreta."
 
@@ -303,6 +321,38 @@ def alterar_email_da_conta():
 
     alterar_email_de_recuperacao(email)
     flash("E-mail de recuperação salvo." if email else "E-mail de recuperação removido.", "success")
+    return redirect(url_for("auth.minha_conta"))
+
+
+@auth_bp.post("/conta/email-envio")
+def configurar_email_de_envio():
+    """Guarda o Gmail e a senha de aplicativo que enviam o código de recuperação. Só grava se o Gmail aceitar o e-mail de teste."""
+    remetente = request.form.get("remetente", "").strip()
+    senha_app = request.form.get("senha_app", "").replace(" ", "")
+    erros = {}
+    erro = erro_de_email(remetente) if remetente else "Informe o Gmail que envia o código."
+    if erro:
+        erros["remetente"] = erro
+    if not (len(senha_app) == 16 and senha_app.isalnum()):
+        erros["senha_app"] = "A senha de aplicativo tem 16 letras. Confira se foi copiada inteira."
+    if not check_password_hash(g.funcionaria["senha_hash"], request.form.get("senha_atual", "")):
+        erros["senha_atual"] = "A senha atual está incorreta."
+
+    if not erros:
+        try:
+            email_envio.enviar(
+                remetente, "Teste do sistema da biblioteca",
+                "O envio de e-mail do sistema da biblioteca está funcionando.\n", credenciais=(remetente, senha_app),
+            )
+        except email_envio.FalhaNoEnvio:
+            erros["senha_app"] = ("O Gmail não aceitou. Confira o Gmail, se a senha de aplicativo foi copiada certa "
+                                  "e se o computador está com internet.")
+    if erros:
+        return _tela_conta(erros_envio=erros, remetente=remetente)
+
+    criptografada = email_envio.salvar_configuracao(remetente, senha_app)
+    aviso = "" if criptografada else " A senha ficou sem criptografia, porque a chave do backup ainda não existe neste computador."
+    flash(f"E-mail de envio salvo. Um e-mail de teste foi enviado para {remetente}.{aviso}", "success")
     return redirect(url_for("auth.minha_conta"))
 
 

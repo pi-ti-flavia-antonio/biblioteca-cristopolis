@@ -75,8 +75,17 @@ def esta_configurado():
     return True
 
 
-def enviar(destino, assunto, texto):
-    remetente, senha = ler_configuracao()
+def remetente_atual():
+    """O Gmail que envia os códigos, ou None se o envio ainda não foi configurado."""
+    try:
+        return ler_configuracao()[0]
+    except EmailNaoConfigurado:
+        return None
+
+
+def enviar(destino, assunto, texto, credenciais=None):
+    """Envia pelo Gmail salvo ou, se vierem `credenciais` (remetente, senha), por esse Gmail."""
+    remetente, senha = credenciais or ler_configuracao()
     mensagem = EmailMessage()
     mensagem["From"] = f"Biblioteca de Cristópolis <{remetente}>"
     mensagem["To"] = destino

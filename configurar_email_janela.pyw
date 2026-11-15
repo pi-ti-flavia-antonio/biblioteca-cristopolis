@@ -1,4 +1,9 @@
-"""Janela para configurar o Gmail que envia o código de recuperação de senha. Dois cliques para abrir."""
+"""Janela para configurar o Gmail que envia o código de recuperação de senha.
+
+Para abrir, rode no terminal, com o ambiente virtual ativo:
+
+    python configurar_email_janela.pyw
+"""
 
 import tkinter as tk
 from tkinter import messagebox

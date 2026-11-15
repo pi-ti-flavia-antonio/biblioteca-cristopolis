@@ -218,7 +218,7 @@ def test_mascarar_email():
 
 def test_primeiro_acesso_guarda_o_email(client_anonimo, app):
     _post(client_anonimo, "/primeiro-acesso", {
-        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1", "email": "ana@example.com",
+        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1", "email": "ana@example.com", "email_confirmacao": "ana@example.com",
     })
 
     with app.app_context():
@@ -237,15 +237,45 @@ def test_primeiro_acesso_sem_email_continua_valido(client_anonimo, app):
 
 def test_primeiro_acesso_recusa_email_invalido(client_anonimo):
     resposta = _post(client_anonimo, "/primeiro-acesso", {
-        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1", "email": "sem-arroba",
+        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1", "email": "sem-arroba", "email_confirmacao": "sem-arroba",
     })
 
     assert resposta.status_code == 400
     assert "Informe um e-mail válido." in html(resposta)
 
 
+def test_primeiro_acesso_recusa_emails_diferentes(client_anonimo, app):
+    resposta = _post(client_anonimo, "/primeiro-acesso", {
+        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1",
+        "email": "ana@example.com", "email_confirmacao": "anna@example.com",
+    })
+
+    assert resposta.status_code == 400
+    assert "Os dois e-mails são diferentes." in html(resposta)
+    with app.app_context():
+        assert get_db().execute("SELECT COUNT(*) FROM funcionario").fetchone()[0] == 0
+
+
+def test_primeiro_acesso_recusa_email_sem_a_repeticao(client_anonimo):
+    resposta = _post(client_anonimo, "/primeiro-acesso", {
+        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1", "email": "ana@example.com",
+    })
+
+    assert resposta.status_code == 400
+    assert "Os dois e-mails são diferentes." in html(resposta)
+
+
+def test_primeiro_acesso_ignora_maiuscula_e_espaco_na_repeticao(client_anonimo, app):
+    resposta = _post(client_anonimo, "/primeiro-acesso", {
+        "nome": "Ana", "login": "ana", "senha": "senha-forte-1", "confirmacao": "senha-forte-1",
+        "email": "ana@example.com", "email_confirmacao": " ANA@Example.com ",
+    })
+
+    assert resposta.status_code == 302
+
+
 def test_conta_salva_o_email_com_a_senha_atual(client, app):
-    resposta = _post(client, "/conta/email", {"email": "novo@example.com", "senha_atual": SENHA_DE_TESTE})
+    resposta = _post(client, "/conta/email", {"email": "novo@example.com", "email_confirmacao": "novo@example.com", "senha_atual": SENHA_DE_TESTE})
 
     assert resposta.status_code == 302
     with app.app_context():
@@ -254,7 +284,7 @@ def test_conta_salva_o_email_com_a_senha_atual(client, app):
 
 
 def test_conta_exige_a_senha_atual_para_mudar_o_email(client, app, com_email):
-    resposta = _post(client, "/conta/email", {"email": "outro@example.com", "senha_atual": "errada"})
+    resposta = _post(client, "/conta/email", {"email": "outro@example.com", "email_confirmacao": "outro@example.com", "senha_atual": "errada"})
 
     assert resposta.status_code == 400
     assert "A senha atual está incorreta." in html(resposta)
@@ -263,10 +293,19 @@ def test_conta_exige_a_senha_atual_para_mudar_o_email(client, app, com_email):
 
 
 def test_conta_recusa_email_invalido(client):
-    resposta = _post(client, "/conta/email", {"email": "sem-arroba", "senha_atual": SENHA_DE_TESTE})
+    resposta = _post(client, "/conta/email", {"email": "sem-arroba", "email_confirmacao": "sem-arroba", "senha_atual": SENHA_DE_TESTE})
 
     assert resposta.status_code == 400
     assert "Informe um e-mail válido." in html(resposta)
+
+
+def test_conta_recusa_emails_diferentes(client, app, com_email):
+    resposta = _post(client, "/conta/email", {"email": "novo@example.com", "email_confirmacao": "nov@example.com", "senha_atual": SENHA_DE_TESTE})
+
+    assert resposta.status_code == 400
+    assert "Os dois e-mails são diferentes." in html(resposta)
+    with app.app_context():
+        assert get_db().execute("SELECT email_recuperacao FROM funcionario").fetchone()[0] == "maria@example.com"
 
 
 def test_conta_deixa_remover_o_email(client, app, com_email):
@@ -413,3 +452,91 @@ def test_o_texto_do_aviso_diz_quando_e_o_que_fazer(app, monkeypatch):
 def test_aviso_sem_configuracao_de_envio_nao_quebra(app):
     with app.app_context():
         assert email_envio.avisar_troca_de_senha("maria@example.com") is False
+
+
+# Configurar o Gmail que envia, dentro do sistema
+
+SENHA_APP = "abcd efgh ijkl mnop"
+
+
+@pytest.fixture
+def envios(monkeypatch):
+    """Troca o envio de verdade por uma lista de (destino, credenciais) para ver o que seria mandado."""
+    enviados = []
+    monkeypatch.setattr(email_envio, "enviar", lambda destino, assunto, texto, credenciais=None: enviados.append((destino, credenciais)))
+    return enviados
+
+
+def _configurar(client, **mudancas):
+    dados = {"remetente": "biblioteca@gmail.com", "senha_app": SENHA_APP, "senha_atual": SENHA_DE_TESTE, **mudancas}
+    return _post(client, "/conta/email-envio", dados)
+
+
+def test_conta_avisa_que_o_envio_nao_esta_configurado(client):
+    assert "Ainda não configurado" in html(client.get("/conta"))
+
+
+def test_configurar_envio_testa_e_salva(client, app, envios):
+    resposta = _configurar(client)
+
+    assert resposta.status_code == 302
+    assert envios == [("biblioteca@gmail.com", ("biblioteca@gmail.com", "abcdefghijklmnop"))]
+    with app.app_context():
+        assert email_envio.ler_configuracao() == ("biblioteca@gmail.com", "abcdefghijklmnop")
+    pagina = html(client.get("/conta"))
+    assert "Configurado:" in pagina and "biblioteca@gmail.com" in pagina and "abcdefghijklmnop" not in pagina
+
+
+def test_configurar_envio_criptografa_com_a_chave_do_backup(client, app, envios):
+    from cryptography.fernet import Fernet
+
+    app.config["ARQUIVO_CHAVE"].write_bytes(Fernet.generate_key())
+
+    _configurar(client)
+
+    texto = app.config["ARQUIVO_EMAIL"].read_text(encoding="utf-8")
+    assert "abcdefghijklmnop" not in texto and "senha_app_criptografada" in texto
+
+
+def test_configurar_envio_exige_a_senha_atual(client, app, envios):
+    resposta = _configurar(client, senha_atual="errada")
+
+    assert resposta.status_code == 400
+    assert "A senha atual está incorreta." in html(resposta)
+    assert envios == [] and not app.config["ARQUIVO_EMAIL"].exists()
+
+
+@pytest.mark.parametrize("senha_app", ["", "curta", "abcd efgh ijkl mno!", "abcdefghijklmnopq"])
+def test_configurar_envio_recusa_senha_de_aplicativo_fora_do_formato(client, app, envios, senha_app):
+    resposta = _configurar(client, senha_app=senha_app)
+
+    assert resposta.status_code == 400
+    assert "A senha de aplicativo tem 16 letras." in html(resposta)
+    assert envios == [] and not app.config["ARQUIVO_EMAIL"].exists()
+
+
+@pytest.mark.parametrize("remetente", ["", "sem-arroba"])
+def test_configurar_envio_recusa_gmail_invalido(client, app, envios, remetente):
+    resposta = _configurar(client, remetente=remetente)
+
+    assert resposta.status_code == 400
+    assert envios == [] and not app.config["ARQUIVO_EMAIL"].exists()
+
+
+def test_configurar_envio_nao_salva_se_o_gmail_recusar(client, app, monkeypatch):
+    def recusar(destino, assunto, texto, credenciais=None):
+        raise email_envio.FalhaNoEnvio()
+
+    monkeypatch.setattr(email_envio, "enviar", recusar)
+
+    resposta = _configurar(client)
+
+    assert resposta.status_code == 400
+    assert "O Gmail não aceitou." in html(resposta)
+    assert not app.config["ARQUIVO_EMAIL"].exists()
+
+
+def test_configurar_envio_nao_mostra_a_senha_de_aplicativo_de_volta(client, envios):
+    resposta = _configurar(client, senha_atual="errada")
+
+    assert "abcdefghijklmnop" not in html(resposta) and SENHA_APP not in html(resposta)
