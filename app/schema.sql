@@ -31,6 +31,13 @@ CREATE TABLE IF NOT EXISTS usuario (
 
 CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_cpf ON usuario (cpf) WHERE cpf IS NOT NULL;
 
+-- Guarda o maior número de carteirinha já gerado, para nunca dar o mesmo número duas vezes,
+-- mesmo que quem o recebeu troque de número depois.
+CREATE TABLE IF NOT EXISTS controle_carteirinha (
+    id            INTEGER PRIMARY KEY CHECK (id = 1),
+    ultimo_gerado INTEGER NOT NULL
+);
+
 -- A foto fica no próprio banco (e não numa pasta) para entrar na cópia de segurança junto com o resto.
 CREATE TABLE IF NOT EXISTS usuario_foto (
     id_usuario    INTEGER PRIMARY KEY REFERENCES usuario (id_usuario) ON DELETE CASCADE,

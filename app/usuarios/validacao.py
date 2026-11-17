@@ -77,8 +77,11 @@ def valores_do_usuario(usuario):
 
 
 def validar_carteirinha(valores, numero_atual, edicao, erros):
-    """Devolve o número digitado, ou None (sem número, ou para o sistema gerar)."""
-    if not edicao and valores["carteirinha_modo"] == "automatico":
+    """Devolve o número digitado, ou None (sem número, ou para o sistema gerar).
+
+    Gerar um número novo vale no cadastro e na edição de quem não tem número ou tem um número antigo.
+    Quem já tem um número gerado (acima da faixa dos antigos) o mantém, e pode trocá-lo por um antigo."""
+    if valores["carteirinha_modo"] == "automatico":
         return None
 
     texto = valores["numero_carteirinha"]

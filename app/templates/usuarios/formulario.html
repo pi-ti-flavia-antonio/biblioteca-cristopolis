@@ -70,25 +70,29 @@
 
         <div class="form__grid">
             {{ campo("nome", "Nome completo", obrigatorio=True, tamanho_max=150, foco=not usuario_id) }}
-            {% if usuario_id %}
+            {% if usuario_id and not pode_gerar %}
             {{ campo("numero_carteirinha", "Número da carteirinha", tamanho_max=9) }}
             {% else %}
             <fieldset class="field field--wide">
-                <legend>Número da carteirinha <span class="field__required" title="Obrigatório">*</span></legend>
+                <legend>Número da carteirinha{% if not usuario_id %} <span class="field__required" title="Obrigatório">*</span>{% endif %}</legend>
                 <label class="field__option">
                     <input type="radio" name="carteirinha_modo" value="manual"{% if valores.carteirinha_modo != "automatico" %} checked{% endif %}>
                     Escrever o número da carteirinha
                 </label>
                 <label class="field__option">
                     <input type="radio" name="carteirinha_modo" value="automatico"{% if valores.carteirinha_modo == "automatico" %} checked{% endif %}>
-                    O número será gerado automaticamente pelo sistema
+                    {% if usuario_id %}Gerar um número novo, a partir de 11047{% else %}O número será gerado automaticamente pelo sistema{% endif %}
                 </label>
                 <input id="numero_carteirinha" name="numero_carteirinha" type="text" inputmode="numeric" maxlength="9" value="{{ valores.numero_carteirinha }}"
                        class="input{% if erros.numero_carteirinha %} input--error{% endif %}" aria-label="Número da carteirinha"{% if erros.numero_carteirinha %} aria-invalid="true" aria-describedby="numero_carteirinha-msg"{% endif %}>
                 {% if erros.numero_carteirinha %}
                 <p class="field__error" id="numero_carteirinha-msg">{{ erros.numero_carteirinha }}</p>
                 {% else %}
+                {% if usuario_id %}
+                <p class="field__hint">Se a pessoa já tem carteirinha, digite o número (de 1 a 11046). Se ainda não tem, deixe em branco ou escolha gerar um número novo. Escolher gerar troca o número que ela tem hoje, se tiver.</p>
+                {% else %}
                 <p class="field__hint">Para usuários antigos, digite o número da carteirinha (de 1 a 11046). Usuários novos ficam com o número gerado pelo sistema.</p>
+                {% endif %}
                 {% endif %}
             </fieldset>
             {% endif %}

@@ -132,7 +132,7 @@ def test_edicao_mantem_o_numero_gerado_acima_da_faixa(post, consulta):
     post("/usuarios/novo", USUARIO_VALIDO)
     id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
 
-    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "nome": "Maria Souza", "numero_carteirinha": "11047"})
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "nome": "Maria Souza", "numero_carteirinha": "11047"})
 
     assert resposta.status_code == 302
     assert _numeros(consulta) == [11047]
@@ -142,7 +142,7 @@ def test_edicao_nao_deixa_trocar_por_numero_acima_da_faixa(post, consulta):
     post("/usuarios/novo", USUARIO_VALIDO)
     id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
 
-    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "numero_carteirinha": "15000"})
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": "15000"})
 
     assert resposta.status_code == 400
     assert "de 1 a 11046" in html(resposta)
@@ -152,7 +152,7 @@ def test_edicao_recusa_numero_de_outro_usuario(post, app):
     _usuario_antigo(app, 10, nome="Ana Antiga")
     id_outro = _usuario_antigo(app, 11, nome="Bia Antiga")
 
-    resposta = post(f"/usuarios/{id_outro}/editar", {**USUARIO_VALIDO, "numero_carteirinha": "10"})
+    resposta = post(f"/usuarios/{id_outro}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": "10"})
 
     assert resposta.status_code == 400
     assert "já é de Ana Antiga" in html(resposta)
@@ -161,8 +161,8 @@ def test_edicao_recusa_numero_de_outro_usuario(post, app):
 def test_usuario_sem_numero_pode_continuar_sem_ou_ganhar_um(post, app, consulta):
     id_usuario = _usuario_antigo(app, None)
 
-    sem_numero = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "numero_carteirinha": ""})
-    com_numero = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "numero_carteirinha": "900"})
+    sem_numero = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": ""})
+    com_numero = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": "900"})
 
     assert sem_numero.status_code == 302
     assert com_numero.status_code == 302
@@ -172,7 +172,7 @@ def test_usuario_sem_numero_pode_continuar_sem_ou_ganhar_um(post, app, consulta)
 def test_usuario_com_numero_nao_pode_ficar_sem(post, app):
     id_usuario = _usuario_antigo(app, 10)
 
-    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "numero_carteirinha": ""})
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": ""})
 
     assert resposta.status_code == 400
     assert "Informe o número da carteirinha." in html(resposta)
@@ -230,3 +230,120 @@ def test_banco_antigo_ganha_a_coluna_e_o_indice_da_carteirinha(tmp_path):
             db.execute("INSERT INTO usuario (nome, numero_carteirinha) VALUES ('A', 5)")
         with pytest.raises(sqlite3.IntegrityError), db:
             db.execute("INSERT INTO usuario (nome, numero_carteirinha) VALUES ('B', 5)")
+
+
+# Gerar o número na edição, para quem ainda não tem
+
+
+def test_usuario_sem_numero_pode_gerar_um_na_edicao(post, app, consulta, client):
+    id_usuario = _usuario_antigo(app, None)
+
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "automatico", "numero_carteirinha": ""})
+
+    assert resposta.status_code == 302
+    assert _numeros(consulta) == [11047]
+    assert "Número da carteirinha: 11047." in html(client.get("/usuarios"))
+
+
+def test_numero_gerado_na_edicao_segue_a_sequencia(post, app, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    id_usuario = _usuario_antigo(app, None, nome="Sem Número")
+
+    post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "cpf": "", "carteirinha_modo": "automatico"})
+
+    assert _numeros(consulta) == [11047, 11048]
+
+
+def test_gerar_na_edicao_ignora_numero_digitado(post, app, consulta):
+    id_usuario = _usuario_antigo(app, None)
+
+    post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "automatico", "numero_carteirinha": "55"})
+
+    assert _numeros(consulta) == [11047]
+
+
+def test_quem_tem_numero_antigo_pode_trocar_por_um_gerado(post, app, consulta):
+    id_usuario = _usuario_antigo(app, 10)
+
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "automatico", "numero_carteirinha": ""})
+
+    assert resposta.status_code == 302
+    assert _numeros(consulta) == [11047]
+
+
+def test_quem_ja_tem_numero_gerado_nao_ganha_outro(post, app, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
+
+    post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "automatico", "numero_carteirinha": ""})
+
+    assert _numeros(consulta) == [11047]
+
+
+def test_numero_gerado_pode_ser_trocado_depois_por_um_antigo(post, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
+
+    resposta = post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": "900"})
+
+    assert resposta.status_code == 302
+    assert _numeros(consulta) == [900]
+
+
+def test_numero_gerado_e_depois_trocado_nunca_e_reaproveitado(post, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
+    post(f"/usuarios/{id_usuario}/editar", {**USUARIO_VALIDO, "carteirinha_modo": "manual", "numero_carteirinha": "900"})
+
+    post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+
+    assert _numeros(consulta) == [900, 11048]
+
+
+def test_formulario_de_edicao_oferece_gerar_para_quem_nao_tem_ou_tem_numero_antigo(client, app, post, consulta):
+    sem_numero = _usuario_antigo(app, None, nome="Sem Número")
+    antigo = _usuario_antigo(app, 10, nome="Número Antigo")
+    post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+    gerado = consulta("SELECT id_usuario FROM usuario WHERE numero_carteirinha = 11047")[0]["id_usuario"]
+
+    assert "Gerar um número novo" in html(client.get(f"/usuarios/{sem_numero}/editar"))
+    assert "Gerar um número novo" in html(client.get(f"/usuarios/{antigo}/editar"))
+    assert "Gerar um número novo" not in html(client.get(f"/usuarios/{gerado}/editar"))
+
+
+def test_numero_de_usuario_excluido_tambem_nao_e_reaproveitado(post, app, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    id_usuario = consulta("SELECT id_usuario FROM usuario")[0]["id_usuario"]
+    with app.app_context():
+        with get_db() as db:
+            db.execute("DELETE FROM usuario WHERE id_usuario = ?", (id_usuario,))
+
+    post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+
+    assert _numeros(consulta) == [11048]
+
+
+def test_banco_restaurado_sem_o_controle_continua_do_maior_numero(post, app, consulta):
+    post("/usuarios/novo", USUARIO_VALIDO)
+    with app.app_context():
+        with get_db() as db:
+            db.execute("DELETE FROM controle_carteirinha")
+
+    post("/usuarios/novo", {**USUARIO_VALIDO, "cpf": ""})
+
+    assert _numeros(consulta) == [11047, 11048]
+
+
+def test_banco_antigo_ganha_a_tabela_de_controle_e_continua_do_maior_numero(tmp_path):
+    banco = tmp_path / "antigo.db"
+    with sqlite3.connect(banco) as con:
+        con.execute(
+            "CREATE TABLE usuario (id_usuario INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, cpf TEXT, "
+            "telefone TEXT, email TEXT, endereco TEXT, tipo_usuario TEXT, ativo INTEGER NOT NULL DEFAULT 1, numero_carteirinha INTEGER)"
+        )
+        con.execute("INSERT INTO usuario (nome, numero_carteirinha) VALUES ('Gerada', 11050)")
+    app = create_app({"TESTING": True, "DATABASE": banco, "SECRET_KEY": "teste"})
+
+    with app.app_context():
+        assert repository.proximo_numero_carteirinha() == 11051
+        assert repository.proximo_numero_carteirinha() == 11052

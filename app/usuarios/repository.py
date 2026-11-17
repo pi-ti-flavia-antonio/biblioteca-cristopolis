@@ -88,11 +88,25 @@ def buscar_por_carteirinha(numero):
 
 
 def proximo_numero_carteirinha():
-    """O maior número já usado acima da faixa reservada, mais 1 (o primeiro é 11047)."""
-    maior = get_db().execute(
+    """Gera o próximo número de carteirinha, acima da faixa reservada (o primeiro é 11047).
+
+    O número é sempre maior que qualquer um já gerado, mesmo que ele não exista mais (a pessoa trocou
+    de número ou foi excluída). Assim, um número que pode estar escrito em uma carteirinha nunca é reaproveitado.
+    """
+    db = get_db()
+    maior_em_uso = db.execute(
         "SELECT MAX(numero_carteirinha) FROM usuario WHERE numero_carteirinha > ?", (ULTIMO_NUMERO_RESERVADO,)
     ).fetchone()[0]
-    return (maior or ULTIMO_NUMERO_RESERVADO) + 1
+    ultimo = db.execute("SELECT ultimo_gerado FROM controle_carteirinha WHERE id = 1").fetchone()
+    base = max(maior_em_uso or 0, ultimo["ultimo_gerado"] if ultimo else 0, ULTIMO_NUMERO_RESERVADO)
+    numero = base + 1
+    with db:
+        db.execute(
+            "INSERT INTO controle_carteirinha (id, ultimo_gerado) VALUES (1, ?) "
+            "ON CONFLICT (id) DO UPDATE SET ultimo_gerado = excluded.ultimo_gerado",
+            (numero,),
+        )
+    return numero
 
 
 def obter_foto(id_usuario):

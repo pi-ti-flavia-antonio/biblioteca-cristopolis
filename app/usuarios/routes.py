@@ -44,7 +44,13 @@ def _foto_enviada():
     return validacao.validar_foto(request.files.get("foto"))
 
 
-def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativo=None, tem_foto=False):
+def _pode_gerar_numero(usuario):
+    """Quem não tem número, ou tem um número antigo, pode pedir um número novo gerado. Quem já tem um gerado, não."""
+    numero = usuario["numero_carteirinha"]
+    return numero is None or numero <= validacao.ULTIMO_NUMERO_RESERVADO
+
+
+def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativo=None, tem_foto=False, pode_gerar=False):
     resposta = render_template(
         "usuarios/formulario.html",
         aba=aba,
@@ -55,6 +61,7 @@ def _formulario(valores, erros, aba=None, usuario_id=None, voltar="", cpf_inativ
         voltar=voltar,
         cpf_inativo=cpf_inativo,
         tem_foto=tem_foto,
+        pode_gerar=pode_gerar,
     )
     return resposta, (400 if erros else 200)
 
@@ -148,7 +155,8 @@ def cadastrar():
 def editar(usuario_id):
     usuario = _obter_ou_404(usuario_id)
     if request.method == "GET":
-        return _formulario(validacao.valores_do_usuario(usuario), {}, usuario_id=usuario_id, tem_foto=usuario["tem_foto"])
+        return _formulario(validacao.valores_do_usuario(usuario), {}, usuario_id=usuario_id, tem_foto=usuario["tem_foto"],
+                           pode_gerar=_pode_gerar_numero(usuario))
 
     valores = validacao.valores_do_formulario(request.form)
     dados, erros = validacao.validar_usuario(valores, numero_atual=usuario["numero_carteirinha"], edicao=True)
@@ -159,14 +167,25 @@ def editar(usuario_id):
     elif erros and foto:
         erros["foto"] = "Escolha a foto de novo: ela não foi guardada porque o formulário tinha erros."
     if erros:
-        return _formulario(valores, erros, usuario_id=usuario_id, tem_foto=usuario["tem_foto"])
+        return _formulario(valores, erros, usuario_id=usuario_id, tem_foto=usuario["tem_foto"],
+                           pode_gerar=_pode_gerar_numero(usuario))
 
+    gerado = valores["carteirinha_modo"] == "automatico"
+    if gerado and _pode_gerar_numero(usuario):
+        dados["numero_carteirinha"] = repository.proximo_numero_carteirinha()
+    elif gerado:
+        dados["numero_carteirinha"] = usuario["numero_carteirinha"]  # já tem um número gerado: continua com ele
+        gerado = False
     repository.atualizar(usuario_id, dados)
     if foto:
         repository.salvar_foto(usuario_id, tipo_foto, foto)
     elif request.form.get("remover_foto") == "1":
         repository.remover_foto(usuario_id)
-    flash(f"Usuário atualizado: {dados['nome']}.", "success")
+    flash(
+        f"Usuário atualizado: {dados['nome']}. Número da carteirinha: {dados['numero_carteirinha']}."
+        if gerado else f"Usuário atualizado: {dados['nome']}.",
+        "success",
+    )
     return redirect(url_for("usuarios.consultar"))
 
 
